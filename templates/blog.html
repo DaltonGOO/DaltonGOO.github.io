@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ section.title }}</h1>
+<input type="text" id="searchInput" placeholder="Search posts..." class="search-bar">
+
+<div class="blog-list" id="blogList">
+  {% for page in section.pages %}
+    <div class="blog-card">
+      <a href="{{ page.permalink }}">
+        <h2 class="blog-title">{{ page.title }}</h2>
+        <p class="meta">{{ page.date | date(format="%B %d, %Y") }}</p>
+        <p>{{ page.summary | safe }}</p>
+      </a>
+    </div>
+  {% endfor %}
+</div>
+
+<script>
+document.getElementById('searchInput').addEventListener('input', function() {
+  const filter = this.value.toLowerCase();
+  document.querySelectorAll('.blog-card').forEach(card => {
+    const title = card.querySelector('.blog-title').textContent.toLowerCase();
+    card.style.display = title.includes(filter) ? '' : 'none';
+  });
+});
+</script>
+{% endblock content %}

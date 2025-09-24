@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>MyBlog</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+  <section class="section">
+    <div class="container">
+      <div class="nav-btns">
+        <a href="/" class="nav-btn">🏠 Home</a>
+        <a href="/blog/" class="nav-btn">📝 Blog</a>
+      </div>
+      {% block content %} {% endblock content %}
+    </div>
+  </section>
+</body>
+
+</html>
