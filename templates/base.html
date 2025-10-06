@@ -4,17 +4,18 @@
 <head>
   <meta charset="utf-8">
   <title>MyBlog</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="{{ get_url(path='style.css') }}">
 </head>
 
 <body>
   <section class="section">
     <div class="container">
       <div class="nav-btns">
-        <a href="/" class="nav-btn">🏠 Home</a>
-        <a href="/blog/" class="nav-btn">📝 Blog</a>
+        <!-- get_url ensures links include the right base path -->
+        <a href="{{ get_url(path='') }}" class="nav-btn">🏠 Home</a>
+        <a href="{{ get_url(path='blog/') }}" class="nav-btn">📝 Blog</a>
       </div>
-      {% block content %} {% endblock content %}
+      {% block content %}{% endblock content %}
     </div>
   </section>
 </body>
