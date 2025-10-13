@@ -1,0 +1,158 @@
+<style>
+.rvt-net { width: 100%; height: 520px; border: 1px solid #e5e7eb; border-radius: .75rem; }
+.rvt-net .legend { font: 12px/1.4 ui-sans-serif, system-ui; margin-bottom: .5rem; opacity:.8 }
+.rvt-net .tooltip { position: absolute; pointer-events: none; background: #111; color:#fff; padding:.35rem .5rem; border-radius:.4rem; font-size:12px; opacity:0; transition:opacity .15s }
+</style>
+
+<div class="legend">
+  <strong>Relationships:</strong> Systems ⇆ Ducts/Equipment; Equipment ⇆ Spaces; Ducts ⇆ Equipment (ConnectedTo)
+</div>
+<div id="rvt-net-{{ id | default(value="a") }}" class="rvt-net"
+     data-src='{{ get_url(path=data | default(value="data/model_snapshot.json")) }}'></div>
+<div id="rvt-tooltip-{{ id | default(value="a") }}" class="tooltip"></div>
+
+<script src="https://unpkg.com/d3@7"></script>
+<script>
+(function mount(containerId, tipId){
+  const el = document.getElementById(containerId);
+  const tip = document.getElementById(tipId);
+  if (!el) return;
+  const src = el.getAttribute('data-src');
+
+  const W = el.clientWidth, H = el.clientHeight;
+  const svg = d3.select(el).append('svg').attr('width', W).attr('height', H);
+  const g = svg.append('g');
+
+  const colorByType = {
+    System: '#1f77b4',
+    Duct:   '#2ca02c',
+    Equip:  '#ff7f0e',
+    Space:  '#9467bd'
+  };
+
+  function key(id){ return String(id); }
+
+  function deriveGraph(data){
+    const nodes = []; const links = [];
+    const sysIndex = new Map();           // system name -> node id
+    const nodeById = new Map();           // thing id -> node id (for equipment)
+
+    // 1) Systems from names present in ducts/equipment
+    function upsertSystem(name){
+      if (!name) return null;
+      if (!sysIndex.has(name)){
+        const id = 'sys:' + name;
+        nodes.push({ id, label: name, type: 'System' });
+        sysIndex.set(name, id);
+      }
+      return sysIndex.get(name);
+    }
+
+    // 2) Ducts
+    (data.Ducts || []).forEach(d => {
+      const id = 'duct:' + d.Id;
+      nodes.push({ id, label: d.TypeName || ('Duct ' + d.Id), type: 'Duct', raw:d });
+      const sysId = upsertSystem(d.SystemName || 'Unknown');
+      if (sysId) links.push({ source: sysId, target: id, rel:'has-duct' });
+
+      // connect ducts to equipment by ConnectedTo equipment ids where possible
+      (d.ConnectedTo || []).forEach(eqId => {
+        const targetId = 'equip:' + eqId;
+        // Create placeholder if equipment hasn’t been added yet
+        if (!nodes.find(n => n.id === targetId)) {
+          nodes.push({ id: targetId, label: 'Equip ' + eqId, type: 'Equip', raw: { Id:eqId }});
+        }
+        links.push({ source: id, target: targetId, rel:'duct-to-equip' });
+      });
+    });
+
+    // 3) Equipment
+    (data.Equipment || []).forEach(e => {
+      const id = 'equip:' + e.Id;
+      if (!nodes.find(n => n.id === id)) {
+        nodes.push({ id, label: e.TypeName || ('Equip ' + e.Id), type: 'Equip', raw:e });
+      }
+      nodeById.set(e.Id, id);
+
+      const sysId = upsertSystem(e.System || e.SystemName || 'Unknown');
+      if (sysId) links.push({ source: sysId, target: id, rel:'has-equipment' });
+
+      if (e.Space){
+        const spId = 'space:' + e.Space;
+        if (!nodes.find(n => n.id === spId)) {
+          nodes.push({ id: spId, label: e.Space, type: 'Space', raw:{ Name:e.Space } });
+        }
+        links.push({ source: id, target: spId, rel:'served-in' });
+      }
+    });
+
+    // 4) Spaces (add any missing metadata)
+    (data.Spaces || []).forEach(s => {
+      const spId = 'space:' + (s.Name || s.Id);
+      if (!nodes.find(n => n.id === spId)) {
+        nodes.push({ id: spId, label: s.Name || ('Space ' + s.Id), type: 'Space', raw:s });
+      }
+      // Link spaces to systems they claim to be connected to
+      (s.ConnectedSystems || []).forEach(sn => {
+        const sysId = upsertSystem(sn);
+        if (sysId) links.push({ source: sysId, target: spId, rel:'system-serves' });
+      });
+    });
+
+    return { nodes, links };
+  }
+
+  function run(graph){
+    const sim = d3.forceSimulation(graph.nodes)
+      .force('link', d3.forceLink(graph.links).id(d => d.id).distance(80).strength(.7))
+      .force('charge', d3.forceManyBody().strength(-180))
+      .force('center', d3.forceCenter(W/2, H/2))
+      .force('collide', d3.forceCollide(26));
+
+    const link = g.append('g').attr('stroke','#bbb').attr('stroke-opacity',0.8)
+      .selectAll('line').data(graph.links).enter().append('line').attr('stroke-width',1.2);
+
+    const node = g.append('g').selectAll('g').data(graph.nodes).enter().append('g').call(
+      d3.drag()
+        .on('start', (e,d)=>{ if(!e.active) sim.alphaTarget(0.3).restart(); d.fx=d.x; d.fy=d.y; })
+        .on('drag',  (e,d)=>{ d.fx=e.x; d.fy=e.y; })
+        .on('end',   (e,d)=>{ if(!e.active) sim.alphaTarget(0); d.fx=null; d.fy=null; })
+    );
+
+    node.append('circle')
+      .attr('r', 8)
+      .attr('fill', d => colorByType[d.type] || '#999')
+      .attr('stroke', '#222')
+      .attr('stroke-width', 0.6)
+      .on('mousemove', (e,d)=>{
+        tip.style.opacity = 1;
+        tip.style.left = (e.pageX + 10) + 'px';
+        tip.style.top  = (e.pageY + 10) + 'px';
+        const raw = d.raw || {};
+        tip.innerHTML = '<b>' + d.type + '</b>: ' + (d.label || d.id) +
+          (raw.SystemName ? '<br><span style="opacity:.7">System: ' + raw.SystemName + '</span>' : '') +
+          (raw.Flow_CFM ? '<br><span style="opacity:.7">Flow: ' + raw.Flow_CFM + ' CFM</span>' : '');
+      })
+      .on('mouseleave', ()=>{ tip.style.opacity = 0; });
+
+    node.append('text')
+      .text(d => d.label)
+      .attr('x', 11).attr('y', 4)
+      .attr('font-size','11px')
+      .attr('font-family','ui-sans-serif, system-ui')
+      .attr('fill','#374151');
+
+    sim.on('tick', ()=>{
+      link.attr('x1', d=>d.source.x).attr('y1', d=>d.source.y)
+          .attr('x2', d=>d.target.x).attr('y2', d=>d.target.y);
+      node.attr('transform', d => `translate(${d.x},${d.y})`);
+    });
+  }
+
+  fetch(src, {cache:'no-store'})
+    .then(r=>r.json())
+    .then(deriveGraph)
+    .then(run)
+    .catch(err => { el.innerHTML = 'Network failed: ' + err; });
+})("rvt-net-{{ id | default(value='a') }}", "rvt-tooltip-{{ id | default(value='a') }}");
+</script>

@@ -1,8 +1,14 @@
 +++
-title = "AI integration with Revit and chatgpt"
+title = "Shortcode test"
 date = 2019-11-29
+draft = true
 +++
 
-This is my second blog post.
+some text here 
 
+This is a shortcode test below:
 {% duct() %}
+empty body
+{% end %}
+
+just some text here 

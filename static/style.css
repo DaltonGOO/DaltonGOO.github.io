@@ -63,3 +63,145 @@
   font-size: 1em;
   box-sizing: border-box;
 }
+.blog-thumb {
+  width: 100%;
+  max-width: 280px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 1em;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  display: block;
+}
+
+.game-hero {
+  background: linear-gradient(135deg, #222 60%, #444 100%);
+  color: #fff;
+  border-radius: 1rem;
+  padding: 2.5rem 1.5rem 2rem 1.5rem;
+  margin: 2rem auto;
+  max-width: 480px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  text-align: center;
+  position: relative;
+}
+.pixel-art {
+  margin: 0 auto 1.2rem auto;
+  width: 64px; height: 64px;
+  display: flex; align-items: center; justify-content: center;
+}
+.pixel-char {
+  width: 48px; height: 48px;
+  background: repeating-linear-gradient(45deg, #6cf 0 8px, #fff 8px 16px);
+  border: 4px solid #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 0 4px #222, 0 0 16px #6cf;
+  animation: pixel-jump 1.2s infinite;
+}
+@keyframes pixel-jump {
+  0%, 100% { transform: translateY(0);}
+  50% { transform: translateY(-12px);}
+}
+.game-title {
+  font-family: 'Press Start 2P', monospace, ui-monospace;
+  font-size: 1.4rem;
+  margin-bottom: .7rem;
+  letter-spacing: 1px;
+}
+.game-desc {
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+}
+.start-btn {
+  display: inline-block;
+  font-family: inherit;
+  font-size: 1.1rem;
+  background: #6cf;
+  color: #222;
+  border: 2px solid #fff;
+  border-radius: 8px;
+  padding: .7em 2em;
+  text-decoration: none;
+  box-shadow: 0 2px 8px #2228;
+  transition: background .2s, transform .2s;
+  animation: btn-blink 1.2s infinite;
+}
+.start-btn:hover {
+  background: #fff;
+  color: #6cf;
+  transform: scale(1.08);
+}
+@keyframes btn-blink {
+  0%, 100% { box-shadow: 0 2px 8px #2228; }
+  50% { box-shadow: 0 0 24px #6cf; }
+}
+
+.site-hero {
+  background: linear-gradient(120deg, #3a7bd5 0%, #00d2ff 100%);
+  color: #fff;
+  border-radius: 1rem;
+  padding: 2.5rem 1.5rem 2rem 1.5rem;
+  margin: 2rem auto;
+  max-width: 520px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  text-align: center;
+  position: relative;
+}
+.hero-icon {
+  width: 54px; height: 54px;
+  margin: 0 auto 1.2rem auto;
+  background: url('https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f527.svg') center/contain no-repeat;
+  /* You can use any SVG or PNG icon here */
+}
+.site-title {
+  font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: .7rem;
+  letter-spacing: 1px;
+  white-space: normal;
+}
+.site-desc {
+  font-size: 1.15rem;
+  margin-bottom: 1.5rem;
+  font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
+}
+.hero-links {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.hero-btn {
+  display: inline-block;
+  font-size: 1.08rem;
+  background: #fff;
+  color: #3a7bd5;
+  border: none;
+  border-radius: 8px;
+  padding: .7em 1.5em;
+  text-decoration: none;
+  box-shadow: 0 2px 8px #2222;
+  transition: background .2s, color .2s, transform .2s;
+  font-weight: 600;
+}
+.hero-btn:hover {
+  background: #3a7bd5;
+  color: #fff;
+  transform: scale(1.06);
+}
+
+#pulse{
+  display:flex;
+  justify-content:center;
+  gap:8px;
+  margin-top:1rem;
+}
+#pulse span{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:currentColor;
+  opacity:.2;
+  transform-origin:center;
+}

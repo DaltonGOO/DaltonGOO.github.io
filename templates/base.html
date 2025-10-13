@@ -1,24 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="utf-8">
   <title>MyBlog</title>
   <link rel="stylesheet" href="{{ get_url(path='style.css') }}">
+  <style>
+    /* progress bar */
+    #progress-bar{position:fixed;top:0;left:0;height:3px;width:0;z-index:999;background:currentColor}
+    /* underline strip (insert right after article H1) */
+    .title-underline{display:block;height:2px;width:0;background:currentColor;margin:.5rem 0 1.25rem}
+    /* hero splitting */
+    .word{display:inline-block;will-change:transform,opacity}
+  </style>
 </head>
-<script src="{{ get_url(path='js/app.js') }}"></script>
 
 <body>
   <section class="section">
     <div class="container">
-      <div class="nav-btns">
-        <!-- get_url ensures links include the right base path -->
-        <a href="{{ get_url(path='') }}" class="nav-btn">🏠 Home</a>
-        <a href="{{ get_url(path='blog/') }}" class="nav-btn">📝 Blog</a>
-      </div>
       {% block content %}{% endblock content %}
     </div>
   </section>
-</body>
 
+  <!-- Anime.js (v4 UMD) -->
+  <script src="/vendor/anime/anime.umd.min.js"></script>
+
+  <!-- Site JS that uses Anime should come AFTER the include -->
+  <script>
+    const { animate, stagger } = anime;
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // ---- helpers ----
+    function splitWords(el){
+      if(!el) return [];
+      const words = (el.textContent || '').trim().split(/\s+/);
+      el.textContent = '';
+      return words.map(w=>{
+        const span = document.createElement('span');
+        span.className = 'word';
+        span.textContent = w + ' ';
+        el.appendChild(span);
+        return span;
+      });
+    }
+
+    // ---- homepage hero (looks for #hero-title) ----
+    function heroReveal(){
+      const h = document.querySelector('#hero-title');
+      if(!h) return;
+      if(prefersReduced){ h.style.opacity = 1; return; }
+      const parts = splitWords(h);
+      animate(parts, { opacity: [0,1], translateY: [12,0] }, { duration: 500, delay: (_,i)=> i*45, easing: 'easeOutCubic' });
+    }
+
+    // ---- article underline (looks for .title-underline) ----
+    function titleUnderline(){
+      const u = document.querySelector('.title-underline');
+      if(!u) return;
+      if(prefersReduced){ u.style.width = '100%'; return; }
+      animate(u, { width: ['0%','100%'] }, { duration: 650, easing: 'easeOutCubic' });
+    }
+
+    // ---- reading progress (adds bar if not present) ----
+    function readingProgress(){
+      let bar = document.getElementById('progress-bar');
+      if(!bar){
+        bar = document.createElement('div');
+        bar.id = 'progress-bar';
+        document.body.appendChild(bar);
+      }
+      const update = ()=>{
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const pct = max > 0 ? (window.scrollY / max) * 100 : 0;
+        if(prefersReduced){ bar.style.width = pct + '%'; return; }
+        animate(bar, { width: pct + '%' }, { duration: 120, easing: 'linear' });
+      };
+      update();
+      window.addEventListener('scroll', update, { passive:true });
+      window.addEventListener('resize', update);
+    }
+
+    // ---- system pulse (looks for #pulse span elements) ----
+    function initPulse(){
+      const dots = document.querySelectorAll('#pulse span');
+      if (dots.length === 0) return;
+      if (prefersReduced){ dots.forEach(d => d.style.opacity = 1); return; }
+      animate(dots, { opacity: [0.2, 1], scale: [1, 1.4] }, {
+        delay: stagger(250, { direction: 'alternate' }),
+        duration: 700,
+        easing: 'easeInOutSine',
+        loop: true,
+        direction: 'alternate'
+      });
+    }
+
+    // ---- on load ----
+    document.addEventListener('DOMContentLoaded', ()=>{
+      heroReveal();
+      titleUnderline();
+      readingProgress();
+      initPulse();   // ← enables the system pulse on pages that include #pulse
+    });
+  </script>
+
+  <!-- Your own app code (optional; keep after Anime if it uses it) -->
+  <script src="{{ get_url(path='js/app.js') }}"></script>
+</body>
 </html>

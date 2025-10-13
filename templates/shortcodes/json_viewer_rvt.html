@@ -1,0 +1,80 @@
+<style>
+.json-viewer { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 14px; line-height: 1.4; }
+.json-node { margin-left: 1rem; }
+.json-key { font-weight: 600; }
+.json-toggle { cursor: pointer; user-select: none; margin-right: .3rem; }
+.json-leaf { margin-left: 1.3rem; }
+.json-meta { opacity: .7; }
+</style>
+
+<div id="json-viewer-{{ id | default(value="a") }}"
+     class="json-viewer"
+     data-src='{{ get_url(path=data | default(value="data/model_snapshot.json")) }}'>
+</div>
+
+<script>
+(function(containerId){
+  var container = document.getElementById(containerId);
+  if (!container) return;
+
+  var src = container.getAttribute('data-src');
+
+  function el(tag, cls, txt){
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (txt !== undefined) e.textContent = txt;
+    return e;
+  }
+
+  // Ensures keys like 0 render correctly
+  function formatKey(key){
+    return (key !== null && key !== undefined && key !== '') ? String(key) + ': ' : '';
+  }
+
+  function renderNode(key, value){
+    if (value !== null && typeof value === 'object') {
+      var node = el('div', 'json-node');
+      var header = el('div');
+      var toggle = el('span', 'json-toggle', '▸');
+      var k = el('span', 'json-key', formatKey(key));
+      var meta = el('span', 'json-meta', Array.isArray(value) ? '[ ]' : '{ }');
+      header.appendChild(toggle); header.appendChild(k); header.appendChild(meta);
+      node.appendChild(header);
+
+      var body = el('div');
+      body.style.display = 'none';
+      var entries = Array.isArray(value) ? value.map(function(v,i){ return [i, v]; }) : Object.entries(value);
+      entries.forEach(function(pair){
+        var child = renderNode(pair[0], pair[1]);
+        body.appendChild(child);
+      });
+      node.appendChild(body);
+
+      toggle.addEventListener('click', function(){
+        var open = body.style.display === 'block';
+        body.style.display = open ? 'none' : 'block';
+        toggle.textContent = open ? '▸' : '▾';
+      });
+
+      return node;
+    } else {
+      var leaf = el('div', 'json-leaf');
+      leaf.appendChild(el('span', 'json-key', formatKey(key)));
+      leaf.appendChild(el('span', '', String(value)));
+      return leaf;
+    }
+  }
+
+  function renderJSON(obj){
+    container.innerHTML = '';
+    container.appendChild(renderNode('', obj));
+    var t = container.querySelector('.json-toggle');
+    if (t) t.click(); // auto-open top level
+  }
+
+  fetch(src, {cache: 'no-store'})
+    .then(function(r){ if(!r.ok) throw new Error(r.status + ' ' + r.statusText); return r.json(); })
+    .then(renderJSON)
+    .catch(function(err){ container.textContent = 'Failed to load JSON: ' + err; });
+})("json-viewer-{{ id | default(value='a') }}");
+</script>

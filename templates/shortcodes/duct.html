@@ -1,6 +1,43 @@
 <div class="card">
   <h3>Interactive Duct Diameter</h3>
-  <label for="duct-dia">Diameter: <span id="duct-dia-value">300</span> mm</label>
+  <label for="duct-dia">
+    Diameter: <span id="duct-dia-value">11.8</span> in
+  </label>
   <input id="duct-dia" type="range" min="100" max="1200" step="10" value="300" />
   <svg id="duct-svg" width="600" height="200" style="display:block; margin-top:12px; border:1px solid #ddd;"></svg>
 </div>
+<script>
+const slider = document.getElementById('duct-dia');
+const valueSpan = document.getElementById('duct-dia-value');
+const svg = document.getElementById('duct-svg');
+
+function mmToInch(mm) {
+  return (mm / 25.4).toFixed(1);
+}
+
+function drawDuct(diaMm) {
+  svg.innerHTML = '';
+  const centerX = svg.width.baseVal.value / 2;
+  const centerY = svg.height.baseVal.value / 2;
+  // Scale diameter to fit SVG (max 180px for 1200mm)
+  const maxPx = 180;
+  const radiusPx = (diaMm / 1200) * maxPx / 2;
+  const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  circle.setAttribute('cx', centerX);
+  circle.setAttribute('cy', centerY);
+  circle.setAttribute('r', radiusPx);
+  circle.setAttribute('fill', '#b3e5fc');
+  circle.setAttribute('stroke', '#0288d1');
+  circle.setAttribute('stroke-width', '4');
+  svg.appendChild(circle);
+}
+
+function update() {
+  const diaMm = parseInt(slider.value, 10);
+  valueSpan.textContent = mmToInch(diaMm);
+  drawDuct(diaMm);
+}
+
+slider.addEventListener('input', update);
+update();
+</script>

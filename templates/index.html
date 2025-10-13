@@ -2,8 +2,31 @@
 
 {% block content %}
 
-<h1 class="title">
-  This is my blog made with Zola.
-</h1>
-<p><a href="{{ get_url(path='@/blog/_index.md') }}">Posts</a>.</p>
+<div class="site-hero">
+  <div class="hero-icon">
+    <img src="/images/v4.png" alt="Logo" style="width:54px;height:54px;display:block;margin:0 auto;">
+  </div>
+
+  <!-- Give the H1 the id expected by the hero animation -->
+  <h1 id="hero-title" class="site-title">Observation Room</h1>
+  <span class="title-underline"></span>
+
+  <p class="site-desc">
+    Welcome! Explore automation, design, code, and creative tools.<br>
+    This is my space for sharing projects, experiments, and ideas.
+  </p>
+
+  
+
+  <div class="hero-links">
+    <a href="{{ get_url(path='blog/') }}" class="hero-btn">Blog</a>
+    <a href="{{ get_url(path='tools/') }}" class="hero-btn">Tools</a>
+    <a href="{{ get_url(path='about/') }}" class="hero-btn">About</a>
+  </div>
+</div>
+
+<!-- div id="pulse"><span></span><span></span><span></span></div>
+
+
+
 {% endblock content %}

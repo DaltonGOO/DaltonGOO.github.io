@@ -1,0 +1,293 @@
+<style>
+/* === data_to_automation (scoped) === */
+#auto-flow-{{ id | default(value="a") }} { 
+  --lane-gap: 18px; --lane-pad: 14px; --radius: 9px;
+  --bg: #0b0c0f0a; --ink: #111; --muted: #6b7280; --ok:#10b981;
+  --duct:#0ea5e9; --equip:#f59e0b; --space:#10b981;
+  border:1px solid #e5e7eb; border-radius:.75rem; background:#fff; padding:1rem; position:relative;
+  font:14px/1.4 ui-sans-serif, system-ui; overflow: hidden;
+}
+#auto-flow-{{ id | default(value="a") }} .af-head { display:flex; gap:1rem; margin-bottom:.5rem; align-items:center; flex-wrap:wrap;}
+#auto-flow-{{ id | default(value="a") }} .af-title { font-weight:700; }
+#auto-flow-{{ id | default(value="a") }} .af-meta { color:var(--muted); font-size:12px; }
+#auto-flow-{{ id | default(value="a") }} .af-ctrls { margin-left:auto; display:flex; gap:.5rem; }
+#auto-flow-{{ id | default(value="a") }} .af-btn { cursor:pointer; padding:.35rem .6rem; border:1px solid #e5e7eb; background:#fff; border-radius:.5rem; font-size:12px; }
+#auto-flow-{{ id | default(value="a") }} .af-btn:disabled { opacity:.5; cursor:default; }
+
+#auto-flow-{{ id | default(value="a") }} .af-stage { position:relative; height:260px; border-radius:.6rem; background:var(--bg); }
+#auto-flow-{{ id | default(value="a") }} .af-lanes { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:var(--lane-gap); height:100%; }
+#auto-flow-{{ id | default(value="a") }} .af-lane { position:relative; padding: var(--lane-pad); }
+#auto-flow-{{ id | default(value="a") }} .af-lbl { position:absolute; top:.4rem; left:.6rem; font-weight:600; font-size:12px; color:#374151; }
+
+#auto-flow-{{ id | default(value="a") }} .af-chip {
+  position:absolute; width: var(--radius); height: var(--radius); border-radius:50%;
+  box-shadow:0 0 0 1px #00000010 inset, 0 1px 4px #00000014;
+  opacity:0; transform:translateY(8px);
+  will-change: transform, opacity, left, top;
+  z-index: 1; /* chips above lanes */
+}
+#auto-flow-{{ id | default(value="a") }} .af-chip.type-duct { background: var(--duct); }
+#auto-flow-{{ id | default(value="a") }} .af-chip.type-equip { background: var(--equip); border-radius: 4px; }
+#auto-flow-{{ id | default(value="a") }} .af-chip.type-space { background: var(--space); transform: rotate(45deg) translateY(8px); }
+
+/* Fallback motion if anime.js is not available */
+#auto-flow-{{ id | default(value="a") }}.css-fallback .af-chip {
+  transition: left 1s cubic-bezier(.22,1,.36,1), top 1s cubic-bezier(.22,1,.36,1),
+              opacity .35s ease-out, transform .35s ease-out;
+}
+#auto-flow-{{ id | default(value="a") }}.css-fallback .af-results {
+  transition: opacity .38s ease-out, transform .38s ease-out;
+}
+
+#auto-flow-{{ id | default(value="a") }} .af-results { 
+  position:absolute; right:12px; left: calc(66.666% + var(--lane-gap) + 12px);
+  bottom:12px; display:flex; gap:.6rem; flex-wrap:wrap; 
+  opacity:0; transform:translateY(8px);
+  z-index: 2; /* results above chips */
+}
+#auto-flow-{{ id | default(value="a") }} .af-tile { min-width:160px; padding:.6rem .7rem; border:1px solid #e5e7eb; background:#fff; border-radius:.6rem; box-shadow:0 1px 6px rgba(0,0,0,.05); }
+#auto-flow-{{ id | default(value="a") }} .af-tile h5 { margin:0 0 .25rem 0; font-size:12px; color:#374151; font-weight:600; }
+#auto-flow-{{ id | default(value="a") }} .af-tile .num { font-size:22px; font-weight:700; }
+
+#auto-flow-{{ id | default(value="a") }} .af-legend { position:absolute; bottom:12px; left:12px; display:flex; gap:.8rem; font-size:11px; color:#6b7280; align-items:center; }
+#auto-flow-{{ id | default(value="a") }} .af-dot { width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:.35rem; vertical-align:-1px;}
+#auto-flow-{{ id | default(value="a") }} .af-dot.duct { background:var(--duct);}
+#auto-flow-{{ id | default(value="a") }} .af-dot.equip { background:var(--equip);}
+#auto-flow-{{ id | default(value="a") }} .af-dot.space { background:var(--space);}
+
+#auto-flow-{{ id | default(value="a") }} .af-svg { position:absolute; inset:0; pointer-events:none; }
+@media (prefers-reduced-motion: reduce) {
+  #auto-flow-{{ id | default(value="a") }} .af-chip, 
+  #auto-flow-{{ id | default(value="a") }} .af-results { transition:none !important; animation:none !important; }
+}
+</style>
+
+<div id="auto-flow-{{ id | default(value="a") }}"
+     class="af-wrap"
+     data-src='{{ get_url(path=data | default(value="data/model_snapshot.json")) }}'
+     data-mode='{{ demo | default(value="fake") }}'
+     data-start='{{ start | default(value="click") }}'>
+  <div class="af-head">
+    <div class="af-title">Data → Structure → Automation</div>
+    <div class="af-meta" id="af-meta-{{ id | default(value="a") }}">ready</div>
+    <div class="af-ctrls">
+      <button class="af-btn" id="af-play-{{ id | default(value="a") }}">Play</button>
+    </div>
+  </div>
+  <div class="af-stage">
+    <svg class="af-svg" width="100%" height="100%" viewBox="0 0 900 260" preserveAspectRatio="none">
+      <path id="af-path-{{ id | default(value="a") }}" d="M 40 180 C 280 120, 620 220, 860 80" fill="none" stroke="#93c5fd" stroke-width="1.5" stroke-dasharray="4 4" opacity=".35"/>
+    </svg>
+    <div class="af-lanes">
+      <div class="af-lane" id="lane-data-{{ id | default(value="a") }}"><div class="af-lbl">Data</div></div>
+      <div class="af-lane" id="lane-struct-{{ id | default(value="a") }}"><div class="af-lbl">Structure</div></div>
+      <div class="af-lane" id="lane-act-{{ id | default(value="a") }}"><div class="af-lbl">Automation</div></div>
+    </div>
+
+    <!-- Results that appear after chips reach "Automation" -->
+    <div class="af-results" id="af-res-{{ id | default(value="a") }}">
+      <div class="af-tile">
+        <h5>Reconnect orphan ducts</h5>
+        <div class="num" data-key="orphan_duct">0</div>
+      </div>
+      <div class="af-tile">
+        <h5>Fill missing SystemName</h5>
+        <div class="num" data-key="missing_param">0</div>
+      </div>
+      <div class="af-tile">
+        <h5>Normalize tags</h5>
+        <div class="num" data-key="tag_drift">0</div>
+      </div>
+    </div>
+
+    <div class="af-legend">
+      <span><i class="af-dot duct"></i>Ducts</span>
+      <span><i class="af-dot equip"></i>Equipment</span>
+      <span><i class="af-dot space"></i>Spaces</span>
+    </div>
+  </div>
+</div>
+
+<!-- Load LOCAL anime.js (no CDN dependency) -->
+<script src="{{ get_url(path='vendor/anime/anime.umd.min.js') }}"></script>
+
+<script>
+(function mount(id){
+  const root = document.getElementById(id);
+  if (!root) return;
+
+  const dataUrl      = root.getAttribute('data-src');
+  const mode         = root.getAttribute('data-mode') || 'fake';
+  const startMode    = root.getAttribute('data-start') || 'click';
+
+  const metaEl       = root.querySelector('#af-meta-{{ id | default(value="a") }}');
+  const stage        = root.querySelector('.af-stage');
+  const laneData     = root.querySelector('#lane-data-{{ id | default(value="a") }}');
+  const laneStruct   = root.querySelector('#lane-struct-{{ id | default(value="a") }}');
+  const laneAct      = root.querySelector('#lane-act-{{ id | default(value="a") }}');
+  const resBox       = root.querySelector('#af-res-{{ id | default(value="a") }}');
+  const playBtn      = root.querySelector('#af-play-{{ id | default(value="a") }}');
+
+  const prefersReduceSystem = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const prefersReduce = (startMode !== 'click') && prefersReduceSystem;
+
+  let tl = null;
+
+  function setMeta(stats){
+    metaEl.textContent = `${stats.Ducts} ducts • ${stats.Equipment} equipment • ${stats.Spaces} spaces`;
+  }
+  function countTo(el, to, ms){
+    const start = 0, dur = ms || 700; const t0 = performance.now();
+    function step(t){ const k = Math.min(1, (t - t0) / dur); el.textContent = Math.round(start + (to - start) * k); if (k < 1) requestAnimationFrame(step); }
+    requestAnimationFrame(step);
+  }
+  function clearStage(){
+    [...stage.querySelectorAll('.af-chip')].forEach(n => n.remove());
+    resBox.style.opacity = 0; resBox.style.transform = 'translateY(8px)';
+    resBox.querySelectorAll('.num').forEach(n => n.textContent = '0');
+    if (tl && tl.pause) tl.pause(); tl = null;
+    root.classList.remove('css-fallback');
+  }
+  function createChips(stats){
+    const chips = [];
+    const r = parseInt(getComputedStyle(root).getPropertyValue('--radius')) || 9;
+    const stageRect = stage.getBoundingClientRect();
+    const dataRect  = laneData.getBoundingClientRect();
+    const pad = 24;
+    function add(n, cls){
+      for (let i=0; i<n; i++){
+        const c = document.createElement('div');
+        c.className = 'af-chip ' + cls;
+        const x = (dataRect.left - stageRect.left) + pad + Math.random()*(dataRect.width  - pad - r*2);
+        const y = (dataRect.top  - stageRect.top ) + pad + Math.random()*(dataRect.height - pad - r*2);
+        c.style.left = x + 'px'; c.style.top = y + 'px';
+        stage.appendChild(c); chips.push(c);
+      }
+    }
+    add(stats.Ducts, 'type-duct'); add(stats.Equipment, 'type-equip'); add(stats.Spaces, 'type-space');
+    return chips;
+  }
+  function showResults(stats){
+    resBox.style.opacity = 1; resBox.style.transform = 'none';
+    resBox.querySelectorAll('.num').forEach(el=>{ const key = el.getAttribute('data-key'); countTo(el, stats.Violations[key] || 0, 800); });
+  }
+
+  function animateWithAnime(stats, chips){
+    const anime = window.anime;
+    const stageRect  = stage.getBoundingClientRect();
+    const dataRect   = laneData.getBoundingClientRect();
+    const structRect = laneStruct.getBoundingClientRect();
+    const actRect    = laneAct.getBoundingClientRect();
+    const dataCenterX   = (dataRect.left   - stageRect.left) + dataRect.width/2;
+    const structCenterX = (structRect.left - stageRect.left) + structRect.width/2;
+    const actCenterX    = (actRect.left    - stageRect.left) + actRect.width/2;
+    const dxStruct = structCenterX - dataCenterX;
+    const dxAct    = actCenterX    - dataCenterX;
+    const moversToAct    = chips.filter((_,i)=> i % 3 === 0);
+    const moversToStruct = chips.filter((_,i)=> i % 3 !== 0);
+
+    tl = anime.timeline({ autoplay: false, easing:'easeOutQuad' });
+    tl.add({ targets: chips, opacity:[0,1], translateY:[8,0], delay:anime.stagger(14), duration:320 });
+    tl.add({ targets: moversToStruct,
+             left:(el)=> (parseFloat(el.style.left)+dxStruct)+'px',
+             top:(el)=>  (parseFloat(el.style.top)+((Math.random()*40)-20))+'px',
+             duration:900, delay:anime.stagger(18) }, '-=120');
+    tl.add({ targets: moversToAct,
+             left:(el)=> (parseFloat(el.style.left)+dxAct)+'px',
+             top:(el)=>  parseFloat(el.style.top)+'px',
+             duration:1200, delay:anime.stagger(30,{start:100}) }, '-=600');
+    tl.add({ targets: resBox, opacity:[0,1], translateY:[8,0], duration:380, begin:()=>showResults(stats) }, '-=200');
+    tl.play();
+  }
+
+  function animateWithCSS(stats, chips){
+    // Fallback path (no anime.js). Uses CSS transitions with staggered setTimeouts.
+    root.classList.add('css-fallback');
+
+    const stageRect  = stage.getBoundingClientRect();
+    const dataRect   = laneData.getBoundingClientRect();
+    const structRect = laneStruct.getBoundingClientRect();
+    const actRect    = laneAct.getBoundingClientRect();
+    const dataCenterX   = (dataRect.left   - stageRect.left) + dataRect.width/2;
+    const structCenterX = (structRect.left - stageRect.left) + structRect.width/2;
+    const actCenterX    = (actRect.left    - stageRect.left) + actRect.width/2;
+    const dxStruct = structCenterX - dataCenterX;
+    const dxAct    = actCenterX    - dataCenterX;
+
+    const moversToAct    = chips.filter((_,i)=> i % 3 === 0);
+    const moversToStruct = chips.filter((_,i)=> i % 3 !== 0);
+
+    // 1) Fade in (stagger)
+    chips.forEach((c,i)=> setTimeout(()=>{ c.style.opacity=1; c.style.transform='translateY(0)'; }, 14*i));
+
+    // 2) Cluster into Structure
+    setTimeout(()=>{
+      moversToStruct.forEach((el,i)=>{
+        const left = parseFloat(el.style.left) + dxStruct;
+        const top  = parseFloat(el.style.top)  + ((Math.random()*40)-20);
+        setTimeout(()=>{ el.style.left = left+'px'; el.style.top = top+'px'; }, 18*i);
+      });
+    }, 200);
+
+    // 3) Slide to Automation
+    setTimeout(()=>{
+      moversToAct.forEach((el,i)=>{
+        const left = parseFloat(el.style.left) + dxAct;
+        const top  = parseFloat(el.style.top);
+        setTimeout(()=>{ el.style.left = left+'px'; el.style.top = top+'px'; }, 30*i + 100);
+      });
+    }, 600);
+
+    // 4) Reveal results
+    setTimeout(()=>{ resBox.style.opacity=1; resBox.style.transform='translateY(0)'; showResults(stats); }, 1000);
+  }
+
+  function buildFake(){
+    const ducts = 40 + Math.floor(Math.random()*20);
+    const equip = 12 + Math.floor(Math.random()*10);
+    const spaces= 8 + Math.floor(Math.random()*8);
+    const viol = {
+      orphan_duct: Math.max(2, Math.round(ducts*0.18)),
+      missing_param: Math.max(2, Math.round(equip*0.45)),
+      tag_drift: Math.max(1, Math.round(equip*0.30))
+    };
+    return { Ducts: ducts, Equipment: equip, Spaces: spaces, Violations: viol };
+  }
+
+  function run(){
+    clearStage();
+    const stats = (mode === 'fake') ? buildFake() : null;
+    const launch = (data)=>{
+      setMeta(data);
+      const chips = createChips(data);
+      const canAnime = !prefersReduce && window.anime && typeof window.anime.timeline === 'function';
+      if (canAnime) animateWithAnime(data, chips);
+      else          animateWithCSS(data, chips);
+    };
+
+    if (stats) return launch(stats);
+    fetch(dataUrl, { cache:'no-store' })
+      .then(r => r.json())
+      .then(data => launch({
+        Ducts:(data.Ducts||[]).length, Equipment:(data.Equipment||[]).length, Spaces:(data.Spaces||[]).length,
+        Violations:{ orphan_duct:5, missing_param:8, tag_drift:3 }
+      }))
+      .catch(()=> { metaEl.textContent = 'failed to load data'; });
+  }
+
+  // Controls
+  const play = () => {
+    playBtn.disabled = true; playBtn.textContent = 'Playing…';
+    run();
+    setTimeout(()=>{ playBtn.disabled=false; playBtn.textContent='Replay'; }, 2300);
+  };
+  playBtn.addEventListener('click', play);
+
+  if (startMode === 'view'){
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{ if (e.isIntersecting && e.intersectionRatio > 0.35){ play(); io.disconnect(); }});
+    }, { threshold:[0,.35,1], rootMargin:'0px 0px -20% 0px' });
+    io.observe(root);
+  }
+})("auto-flow-{{ id | default(value='a') }}");
+</script>
