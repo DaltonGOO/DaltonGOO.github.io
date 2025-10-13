@@ -1,0 +1,633 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>MyBlog</title><link href=https://DaltonGOO.github.io/DaltonGoodwin.github.io/style.css rel=stylesheet><style>#progress-bar{z-index:999;background:currentColor;width:0;height:3px;position:fixed;top:0;left:0}.title-underline{background:currentColor;width:0;height:2px;margin:.5rem 0 1.25rem;display:block}.word{will-change:transform,opacity;display:inline-block}</style><body><section class=section><div class=container><h1 class=title>What Revit Does Not Show You</h1><p class=subtitle><strong>2025-10-06</strong><p><a class=hero-btn href=/blog/ style=margin-bottom:1.5rem;display:inline-block>← Back to Blog</a> | <a class=hero-btn href=/ style=margin-bottom:1.5rem;display:inline-block>Home</a><p>From Revit's opaque model data to explorable structures that let us see how our models actually work.<p>Revit does a good job of showing you what you built but not what your model <em>is.</em><p>When I started pulling data out of models, I wasn’t looking for KPIs or dashboards. I wanted to understand how things connect. Which systems talk to which, and which families actually matter. Even something as small as how an object interacts with rooms or spaces can reveal how consistently data is captured. Once you understand what’s reliable (and what isn’t), you can start writing rules around it.<p>I once spent days digging into electrical “room insertion” logic. That single investigation led to tools that <em>survive</em> messy modeling and still produce trustworthy data.<p>Over the years I built dozens of dashboards. They looked nice, but they didn’t really <em>explain</em> much. They just showed more data.<p>It took me a little to realize the problem isn’t that we don’t have enough data. It’s that we don’t understand how our workflows connect to it.<br> <strong>How we interact with our tools shapes what we see and what we fail to see.</strong><p>It’s easy to treat solutions as limited by the tools themselves. Most learn just enough to get through a project, check the boxes, and make the model “work.” But I think there is a lot of value that comes from curiosity. Asking <em>why</em> the model behaves the way it does and what its structure reveals about how we work.<p>To create meaningful value for clients and teams, we have to move past “use the same tools the same way.” We can automate, analyze, and connect data across entire portfolios but yet so much of our time still disappears into warnings and “perfect” 2D drawings.<p>We can build systems that <em>learn</em> from our projects.<br> We can capture knowledge, not just geometry.<hr><h2 id=extracted-structure>Extracted structure</h2><p>Here’s some raw model data as an <strong>explorable tree</strong>. Interacting with it exposes relationships and hierarchies how the model <em>thinks</em>, not just how it looks.</p><style>.json-viewer{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,Liberation Mono,monospace;font-size:14px;line-height:1.4}.json-node{margin-left:1rem}.json-key{font-weight:600}.json-toggle{cursor:pointer;user-select:none;margin-right:.3rem}.json-leaf{margin-left:1.3rem}.json-meta{opacity:.7}</style><div class=json-viewer data-src=https://DaltonGOO.github.io/DaltonGoodwin.github.io/data/model_snapshot.json id=json-viewer-tree1></div><script>(function(containerId){
+  var container = document.getElementById(containerId);
+  if (!container) return;
+
+  var src = container.getAttribute('data-src');
+
+  function el(tag, cls, txt){
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (txt !== undefined) e.textContent = txt;
+    return e;
+  }
+
+  // Ensures keys like 0 render correctly
+  function formatKey(key){
+    return (key !== null && key !== undefined && key !== '') ? String(key) + ': ' : '';
+  }
+
+  function renderNode(key, value){
+    if (value !== null && typeof value === 'object') {
+      var node = el('div', 'json-node');
+      var header = el('div');
+      var toggle = el('span', 'json-toggle', '▸');
+      var k = el('span', 'json-key', formatKey(key));
+      var meta = el('span', 'json-meta', Array.isArray(value) ? '[ ]' : '{ }');
+      header.appendChild(toggle); header.appendChild(k); header.appendChild(meta);
+      node.appendChild(header);
+
+      var body = el('div');
+      body.style.display = 'none';
+      var entries = Array.isArray(value) ? value.map(function(v,i){ return [i, v]; }) : Object.entries(value);
+      entries.forEach(function(pair){
+        var child = renderNode(pair[0], pair[1]);
+        body.appendChild(child);
+      });
+      node.appendChild(body);
+
+      toggle.addEventListener('click', function(){
+        var open = body.style.display === 'block';
+        body.style.display = open ? 'none' : 'block';
+        toggle.textContent = open ? '▸' : '▾';
+      });
+
+      return node;
+    } else {
+      var leaf = el('div', 'json-leaf');
+      leaf.appendChild(el('span', 'json-key', formatKey(key)));
+      leaf.appendChild(el('span', '', String(value)));
+      return leaf;
+    }
+  }
+
+  function renderJSON(obj){
+    container.innerHTML = '';
+    container.appendChild(renderNode('', obj));
+    var t = container.querySelector('.json-toggle');
+    if (t) t.click(); // auto-open top level
+  }
+
+  fetch(src, {cache: 'no-store'})
+    .then(function(r){ if(!r.ok) throw new Error(r.status + ' ' + r.statusText); return r.json(); })
+    .then(renderJSON)
+    .catch(function(err){ container.textContent = 'Failed to load JSON: ' + err; });
+})("json-viewer-tree1");</script><p>Below is the same data as a <strong>network graph</strong>. Each line is a dependency; each node is a system, element type, or space. This is how models <em>behave</em>.</p><style>.rvt-net{border:1px solid #e5e7eb;border-radius:.75rem;width:100%;height:520px}.rvt-net .legend{opacity:.8;margin-bottom:.5rem;font:12px/1.4 ui-sans-serif,system-ui}.rvt-net .tooltip{pointer-events:none;color:#fff;opacity:0;background:#111;border-radius:.4rem;padding:.35rem .5rem;font-size:12px;transition:opacity .15s;position:absolute}</style><div class=legend><strong>Relationships:</strong> Systems ⇆ Ducts/Equipment; Equipment ⇆ Spaces; Ducts ⇆ Equipment (ConnectedTo)</div><div class=rvt-net data-src=https://DaltonGOO.github.io/DaltonGoodwin.github.io/data/model_snapshot.json id=rvt-net-net1></div><div class=tooltip id=rvt-tooltip-net1></div><script src=https://unpkg.com/d3@7></script><script>(function mount(containerId, tipId){
+  const el = document.getElementById(containerId);
+  const tip = document.getElementById(tipId);
+  if (!el) return;
+  const src = el.getAttribute('data-src');
+
+  const W = el.clientWidth, H = el.clientHeight;
+  const svg = d3.select(el).append('svg').attr('width', W).attr('height', H);
+  const g = svg.append('g');
+
+  const colorByType = {
+    System: '#1f77b4',
+    Duct:   '#2ca02c',
+    Equip:  '#ff7f0e',
+    Space:  '#9467bd'
+  };
+
+  function key(id){ return String(id); }
+
+  function deriveGraph(data){
+    const nodes = []; const links = [];
+    const sysIndex = new Map();           // system name -> node id
+    const nodeById = new Map();           // thing id -> node id (for equipment)
+
+    // 1) Systems from names present in ducts/equipment
+    function upsertSystem(name){
+      if (!name) return null;
+      if (!sysIndex.has(name)){
+        const id = 'sys:' + name;
+        nodes.push({ id, label: name, type: 'System' });
+        sysIndex.set(name, id);
+      }
+      return sysIndex.get(name);
+    }
+
+    // 2) Ducts
+    (data.Ducts || []).forEach(d => {
+      const id = 'duct:' + d.Id;
+      nodes.push({ id, label: d.TypeName || ('Duct ' + d.Id), type: 'Duct', raw:d });
+      const sysId = upsertSystem(d.SystemName || 'Unknown');
+      if (sysId) links.push({ source: sysId, target: id, rel:'has-duct' });
+
+      // connect ducts to equipment by ConnectedTo equipment ids where possible
+      (d.ConnectedTo || []).forEach(eqId => {
+        const targetId = 'equip:' + eqId;
+        // Create placeholder if equipment hasn’t been added yet
+        if (!nodes.find(n => n.id === targetId)) {
+          nodes.push({ id: targetId, label: 'Equip ' + eqId, type: 'Equip', raw: { Id:eqId }});
+        }
+        links.push({ source: id, target: targetId, rel:'duct-to-equip' });
+      });
+    });
+
+    // 3) Equipment
+    (data.Equipment || []).forEach(e => {
+      const id = 'equip:' + e.Id;
+      if (!nodes.find(n => n.id === id)) {
+        nodes.push({ id, label: e.TypeName || ('Equip ' + e.Id), type: 'Equip', raw:e });
+      }
+      nodeById.set(e.Id, id);
+
+      const sysId = upsertSystem(e.System || e.SystemName || 'Unknown');
+      if (sysId) links.push({ source: sysId, target: id, rel:'has-equipment' });
+
+      if (e.Space){
+        const spId = 'space:' + e.Space;
+        if (!nodes.find(n => n.id === spId)) {
+          nodes.push({ id: spId, label: e.Space, type: 'Space', raw:{ Name:e.Space } });
+        }
+        links.push({ source: id, target: spId, rel:'served-in' });
+      }
+    });
+
+    // 4) Spaces (add any missing metadata)
+    (data.Spaces || []).forEach(s => {
+      const spId = 'space:' + (s.Name || s.Id);
+      if (!nodes.find(n => n.id === spId)) {
+        nodes.push({ id: spId, label: s.Name || ('Space ' + s.Id), type: 'Space', raw:s });
+      }
+      // Link spaces to systems they claim to be connected to
+      (s.ConnectedSystems || []).forEach(sn => {
+        const sysId = upsertSystem(sn);
+        if (sysId) links.push({ source: sysId, target: spId, rel:'system-serves' });
+      });
+    });
+
+    return { nodes, links };
+  }
+
+  function run(graph){
+    const sim = d3.forceSimulation(graph.nodes)
+      .force('link', d3.forceLink(graph.links).id(d => d.id).distance(80).strength(.7))
+      .force('charge', d3.forceManyBody().strength(-180))
+      .force('center', d3.forceCenter(W/2, H/2))
+      .force('collide', d3.forceCollide(26));
+
+    const link = g.append('g').attr('stroke','#bbb').attr('stroke-opacity',0.8)
+      .selectAll('line').data(graph.links).enter().append('line').attr('stroke-width',1.2);
+
+    const node = g.append('g').selectAll('g').data(graph.nodes).enter().append('g').call(
+      d3.drag()
+        .on('start', (e,d)=>{ if(!e.active) sim.alphaTarget(0.3).restart(); d.fx=d.x; d.fy=d.y; })
+        .on('drag',  (e,d)=>{ d.fx=e.x; d.fy=e.y; })
+        .on('end',   (e,d)=>{ if(!e.active) sim.alphaTarget(0); d.fx=null; d.fy=null; })
+    );
+
+    node.append('circle')
+      .attr('r', 8)
+      .attr('fill', d => colorByType[d.type] || '#999')
+      .attr('stroke', '#222')
+      .attr('stroke-width', 0.6)
+      .on('mousemove', (e,d)=>{
+        tip.style.opacity = 1;
+        tip.style.left = (e.pageX + 10) + 'px';
+        tip.style.top  = (e.pageY + 10) + 'px';
+        const raw = d.raw || {};
+        tip.innerHTML = '<b>' + d.type + '</b>: ' + (d.label || d.id) +
+          (raw.SystemName ? '<br><span style="opacity:.7">System: ' + raw.SystemName + '</span>' : '') +
+          (raw.Flow_CFM ? '<br><span style="opacity:.7">Flow: ' + raw.Flow_CFM + ' CFM</span>' : '');
+      })
+      .on('mouseleave', ()=>{ tip.style.opacity = 0; });
+
+    node.append('text')
+      .text(d => d.label)
+      .attr('x', 11).attr('y', 4)
+      .attr('font-size','11px')
+      .attr('font-family','ui-sans-serif, system-ui')
+      .attr('fill','#374151');
+
+    sim.on('tick', ()=>{
+      link.attr('x1', d=>d.source.x).attr('y1', d=>d.source.y)
+          .attr('x2', d=>d.target.x).attr('y2', d=>d.target.y);
+      node.attr('transform', d => `translate(${d.x},${d.y})`);
+    });
+  }
+
+  fetch(src, {cache:'no-store'})
+    .then(r=>r.json())
+    .then(deriveGraph)
+    .then(run)
+    .catch(err => { el.innerHTML = 'Network failed: ' + err; });
+})("rvt-net-net1", "rvt-tooltip-net1");</script><p>Here is a <strong>3D preview</strong> of that dataset. Once you lift model data into a flexible structure, you can inspect it spatially, logically, or relationally and you get much closer to diagnostics or automated correction.</p><style>.rvt-3d{overscroll-behavior:contain;border:1px solid #e5e7eb;border-radius:.75rem;width:100%;height:420px;position:relative}.rvt-3d .hud{color:#fff;background:#0000008c;border-radius:.4rem;padding:.35rem .5rem;font:12px ui-sans-serif,system-ui;position:absolute;top:.5rem;left:.5rem}.rvt-3d .err{color:#b91c1c;background:#fff4f4;border:1px solid #fca5a5;border-radius:.5rem;padding:.5rem .6rem;font:12px ui-sans-serif,system-ui;position:absolute;inset:auto .5rem .5rem}.rvt-3d canvas{touch-action:none;display:block}</style><div class=rvt-3d data-src=https://DaltonGOO.github.io/DaltonGoodwin.github.io/data/model_snapshot.json id=p5-rvt-p5demo1><div class=hud>Left-drag: orbit</div></div><script src=https://cdn.jsdelivr.net/npm/p5@1.9.3/lib/p5.min.js></script><script src=https://cdn.jsdelivr.net/npm/p5.easycam@1.0.1/p5.easycam.min.js></script><script>(function mount(containerId){
+  const wrap = document.getElementById(containerId);
+  if (!wrap) return;
+
+  const src = wrap.getAttribute('data-src');
+
+  const inches = x => (x || 0) * 0.0833333;
+  const feet   = x => (x || 0);
+
+  let ducts = [], equip = [];
+  let sysOrder = [];
+  let bounds = { min:[0,0,0], max:[0,0,0] };
+
+  function showErr(msg){
+    const e = document.createElement('div');
+    e.className = 'err';
+    e.textContent = msg;
+    wrap.appendChild(e);
+  }
+  function expandBounds(x,y,z){
+    bounds.min[0] = Math.min(bounds.min[0], x);
+    bounds.min[1] = Math.min(bounds.min[1], y);
+    bounds.min[2] = Math.min(bounds.min[2], z);
+    bounds.max[0] = Math.max(bounds.max[0], x);
+    bounds.max[1] = Math.max(bounds.max[1], y);
+    bounds.max[2] = Math.max(bounds.max[2], z);
+  }
+
+  fetch(src, {cache:'no-store'})
+    .then(r => { if(!r.ok) throw new Error(r.status+' '+r.statusText); return r.json(); })
+    .then(data => {
+      ducts = data.Ducts || [];
+      equip = data.Equipment || [];
+
+      const sysSet = new Set();
+      ducts.forEach(d => sysSet.add(d.SystemName || 'Unknown'));
+      equip.forEach(e => sysSet.add(e.System || e.SystemName || 'Unknown'));
+      sysOrder = Array.from(sysSet);
+
+      let zOffsetBySys = new Map(sysOrder.map(n => [n, 0]));
+      ducts.forEach(d => {
+        const sys = d.SystemName || 'Unknown';
+        const len = Math.max(6, feet(d.Length_ft || 0));
+        d.__sys = sys;
+        d.__len = len;
+        d.__zCenter = zOffsetBySys.get(sys) + len/2;
+        zOffsetBySys.set(sys, d.__zCenter + len/2 + 6);
+      });
+
+      const laneSpacing = 40;
+      const half = (sysOrder.length - 1) / 2;
+      ducts.forEach((d) => {
+        const x = (sysOrder.indexOf(d.__sys) - half) * laneSpacing;
+        const y = 8;
+        const z = d.__zCenter;
+        const len = d.__len;
+        let sx = (d.Width_in ? inches(d.Width_in) : inches(d.Diameter_in || 12));
+        let sy = (d.Height_in ? inches(d.Height_in) : inches(d.Diameter_in || 12));
+        if (!d.Width_in && !d.Height_in) { sx = sy = inches(d.Diameter_in || 12); }
+        expandBounds(x - sx/2, y - sy/2, z - len/2);
+        expandBounds(x + sx/2, y + sy/2, z + len/2);
+      });
+      equip.forEach((e,i) => {
+        const sys = e.System || e.SystemName || 'Unknown';
+        const x = (sysOrder.indexOf(sys) - half) * laneSpacing + 6;
+        const y = 10, z = i * 28;
+        expandBounds(x-2, y-2, z-2); expandBounds(x+2, y+2, z+2);
+      });
+
+      makeSketch();
+    })
+    .catch(err => showErr('3D preview failed: ' + err));
+
+  function makeSketch(){
+    new p5(p => {
+      let easycam;
+      const laneSpacing = 40;
+
+      p.setup = function(){
+        p.createCanvas(wrap.clientWidth, wrap.clientHeight, p.WEBGL);
+        p.pixelDensity(Math.min(window.devicePixelRatio || 1, 2));
+        p.noStroke();
+
+        if (typeof p.createEasyCam === 'function') {
+          easycam = p.createEasyCam({ distance: 200 });
+          easycam.setZoomScale?.(0);
+          easycam.setPanScale?.(0);
+        } else {
+          showErr('p5.EasyCam not found. Ensure p5.easycam.min.js loaded.');
+        }
+
+        const cnv = p.canvas;
+        cnv.tabIndex = 0;
+
+        const cx = (bounds.min[0] + bounds.max[0]) / 2;
+        const cy = (bounds.min[1] + bounds.max[1]) / 2;
+        const cz = (bounds.min[2] + bounds.max[2]) / 2;
+        try {
+          easycam && easycam.setCenter([cx, -cy, -cz], 0.0);
+          const sx = bounds.max[0] - bounds.min[0];
+          const sy = bounds.max[1] - bounds.min[1];
+          const sz = bounds.max[2] - bounds.min[2];
+          const maxDim = Math.max(sx, sy, sz, 100);
+          easycam && easycam.setDistance(maxDim * 2.5, 0.0);
+        } catch (e) {}
+      };
+
+      p.windowResized = function(){
+        p.resizeCanvas(wrap.clientWidth, wrap.clientHeight);
+      };
+
+      p.draw = function(){
+        p.background(247);
+
+        p.ambientLight(110);
+        p.directionalLight(255, 255, 255, 0.6, 0.8, 1);
+
+        p.push();
+        p.rotateX(Math.PI/2);
+        p.stroke(210); p.strokeWeight(1); p.noFill();
+        for (let i=-400; i<=400; i+=20){ p.line(-400, i, 400, i); p.line(i, -400, i, 400); }
+        p.pop();
+        p.noStroke();
+
+        p.scale(1, -1, 1);
+
+        const half = (sysOrder.length - 1) / 2;
+
+        ducts.forEach(d => {
+          const x = (sysOrder.indexOf(d.__sys) - half) * laneSpacing;
+          const y = 8;
+          const z = d.__zCenter;
+
+          const isRect = (d.Shape || '').toLowerCase().startsWith('rect');
+          const len = d.__len;
+
+          p.ambientMaterial(44, 160, 44);
+          p.push();
+          p.translate(x, y, z);
+
+          if (isRect) {
+            const w = Math.max(0.5, inches(d.Width_in || 0));
+            const h = Math.max(0.5, inches(d.Height_in || 0));
+            p.box(w, h, len);
+          } else {
+            const dia = Math.max(0.5, inches(d.Diameter_in || 0));
+            p.rotateX(Math.PI/2);
+            p.cylinder(dia/2, len, 24, 1);
+          }
+          p.pop();
+        });
+
+        equip.forEach((e, i) => {
+          const sys = e.System || e.SystemName || 'Unknown';
+          const x = (sysOrder.indexOf(sys) - half) * laneSpacing + 6;
+          const y = 10;
+          const z = i * 28;
+
+          p.ambientMaterial(255, 127, 14);
+          p.push();
+          p.translate(x, y, z);
+          p.sphere(1.8, 12, 12);
+          p.pop();
+        });
+      };
+    }, wrap);
+  }
+})("p5-rvt-p5demo1");</script><hr><h2 id=why-these-visuals-matter>Why these visuals matter</h2><p>Once the wiring is visible, patterns and inconsistencies can start to appear.<br> And when you can <em>see</em> structure, you can write <strong>rules</strong>.<p>Visualization can allow you to see the relationships between <strong>data</strong> and <strong>automation</strong>.<br> You move from <em>“what is wrong?”</em> to <em>“what can I do about it?”</em> which opens up what I think are interesting possibilities.<p>Instead of reacting to problems, you can begin to anticipate them, having systems that understand the <em>intent</em> behind a model, not just its outputs.<hr><h2 id=who-benefits>Who benefits</h2><p>This isn’t just for “tech people.” Designers, BIM managers, and even owners can use these views to ask better questions:<ul><li>Why is this system connected that way?<li>What drives that parameter?<li>Is the model behaving how we think it is?</ul><p>Once the logic becomes visible, the model stops being a static file and starts acting like a living system that can evolve and adapt.<hr><h2 id=from-visuals-to-autonomy>From visuals to autonomy</h2><p>Most “model health” tools stop at telling you something’s wrong. That can be useful but not really that impactful.<p>Instead of simple data reporting, we can build a system that <strong>knows what to do</strong> with what it sees.<p>If a duct is disconnected, I don’t need a chart.<br> I need a system that recognizes the condition and applies a logical reconnection, taking into account design phase, intent, and tolerance.<p><strong>Visualization</strong> can help us discover patterns.<br> <strong>Automation</strong> helps us respond to them.<br> Together, they form the foundation of <strong>autonomous interpretation</strong> a model that can explain and improve itself.<hr><h3 id=guiding-ideas>Guiding ideas</h3><ul><li>Visuals for exploration.<li>Automation for intent-aware action.<li>Human-in-the-loop by default.<li>Traceability.</ul><hr><h3 id=what-autonomous-looks-like>What “autonomous” looks like</h3><table><thead><tr><th>Condition<th>Visual cue<th>Autonomous action<tbody><tr><td>Orphan duct end<td>Show orphan endpoints<td>Propose shortest valid reconnection honoring clearance/slope; preview Δlength<tr><td>Missing parameter<td>Color by family/field<td>Auto-fill from dictionary or prompt once<tr><td>Clearance violation<td>Show crossing graph<td>Minimal-nudge reroute with system priority<tr><td>Tag drift<td>Color by source<td>Normalize from canonical tags<tr><td>Over-segmented run<td>Fittings heatmap<td>Merge segments per spec; estimate impact</table><hr><h3 id=from-a-tiny-rule-to-a-chain-of-reasoning>From a tiny rule to a chain of reasoning</h3><p>The smallest piece of logic a <strong>rule</strong> can become the foundation for intelligent behavior.<br> You start with a condition, define a response, then let patterns scale that response across models.<pre class=language-python data-lang=python><code class=language-python data-lang=python>def is_orphan_duct(seg):
+    return (seg.end_a.connected_to is None) or (seg.end_b.connected_to is None)
+
+def missing_param(elem, name):
+    return getattr(elem, name, None) in (None, "", 0)
+
+def propose_fix(elem):
+    if is_orphan_duct(elem):
+        return reconnect(elem)
+    elif missing_param(elem, "SystemName"):
+        return fill_from_dict(elem, "SystemName")
+</code></pre><p>Each small rule feeds into a broader system of <strong>data → structure → automation</strong>.<br> Data defines what exists, structure defines how it connects, and automation defines how it adapts.<p>That loop <strong>observe → interpret → act</strong> is how design tools start becoming intelligent collaborators rather than just containers of messy data.<p>Once there is a foundation in place, automation stops being reports and one off automation, and the need for BIM cops disappears. It becomes a feedback system one that learns from your models, reinforces good behavior, and flags weak patterns before they turn into rework.<p>The goal isn’t to replace designers.<br> It’s to give them <strong>visibility</strong> and <strong>agency</strong> over how digital systems behave — making automation amplify decisions instead of hiding them behind black boxes.</p><style>#auto-flow-flow1{--lane-gap:18px;--lane-pad:14px;--radius:9px;--bg:#0b0c0f0a;--ink:#111;--muted:#6b7280;--ok:#10b981;--duct:#0ea5e9;--equip:#f59e0b;--space:#10b981;background:#fff;border:1px solid #e5e7eb;border-radius:.75rem;padding:1rem;font:14px/1.4 ui-sans-serif,system-ui;position:relative;overflow:hidden}#auto-flow-flow1 .af-head{flex-wrap:wrap;align-items:center;gap:1rem;margin-bottom:.5rem;display:flex}#auto-flow-flow1 .af-title{font-weight:700}#auto-flow-flow1 .af-meta{color:var(--muted);font-size:12px}#auto-flow-flow1 .af-ctrls{gap:.5rem;margin-left:auto;display:flex}#auto-flow-flow1 .af-btn{cursor:pointer;background:#fff;border:1px solid #e5e7eb;border-radius:.5rem;padding:.35rem .6rem;font-size:12px}#auto-flow-flow1 .af-btn:disabled{opacity:.5;cursor:default}#auto-flow-flow1 .af-stage{background:var(--bg);border-radius:.6rem;height:260px;position:relative}#auto-flow-flow1 .af-lanes{gap:var(--lane-gap);grid-template-columns:1fr 1fr 1fr;height:100%;display:grid}#auto-flow-flow1 .af-lane{padding:var(--lane-pad);position:relative}#auto-flow-flow1 .af-lbl{color:#374151;font-size:12px;font-weight:600;position:absolute;top:.4rem;left:.6rem}#auto-flow-flow1 .af-chip{width:var(--radius);height:var(--radius);opacity:0;will-change:transform,opacity,left,top;z-index:1;border-radius:50%;position:absolute;transform:translateY(8px);box-shadow:inset 0 0 0 1px #00000010,0 1px 4px #00000014}#auto-flow-flow1 .af-chip.type-duct{background:var(--duct)}#auto-flow-flow1 .af-chip.type-equip{background:var(--equip);border-radius:4px}#auto-flow-flow1 .af-chip.type-space{background:var(--space);transform:rotate(45deg)translateY(8px)}#auto-flow-flow1.css-fallback .af-chip{transition:left 1s cubic-bezier(.22,1,.36,1),top 1s cubic-bezier(.22,1,.36,1),opacity .35s ease-out,transform .35s ease-out}#auto-flow-flow1.css-fallback .af-results{transition:opacity .38s ease-out,transform .38s ease-out}#auto-flow-flow1 .af-results{right:12px;left:calc(66.666% + var(--lane-gap) + 12px);opacity:0;z-index:2;flex-wrap:wrap;gap:.6rem;display:flex;position:absolute;bottom:12px;transform:translateY(8px)}#auto-flow-flow1 .af-tile{background:#fff;border:1px solid #e5e7eb;border-radius:.6rem;min-width:160px;padding:.6rem .7rem;box-shadow:0 1px 6px #0000000d}#auto-flow-flow1 .af-tile h5{color:#374151;margin:0 0 .25rem;font-size:12px;font-weight:600}#auto-flow-flow1 .af-tile .num{font-size:22px;font-weight:700}#auto-flow-flow1 .af-legend{color:#6b7280;align-items:center;gap:.8rem;font-size:11px;display:flex;position:absolute;bottom:12px;left:12px}#auto-flow-flow1 .af-dot{vertical-align:-1px;border-radius:50%;width:10px;height:10px;margin-right:.35rem;display:inline-block}#auto-flow-flow1 .af-dot.duct{background:var(--duct)}#auto-flow-flow1 .af-dot.equip{background:var(--equip)}#auto-flow-flow1 .af-dot.space{background:var(--space)}#auto-flow-flow1 .af-svg{pointer-events:none;position:absolute;inset:0}@media (prefers-reduced-motion:reduce){#auto-flow-flow1 .af-chip,#auto-flow-flow1 .af-results{transition:none!important;animation:none!important}}</style><div class=af-wrap data-mode=fake data-src=https://DaltonGOO.github.io/DaltonGoodwin.github.io/data/model_snapshot.json data-start=click id=auto-flow-flow1><div class=af-head><div class=af-title>Data → Structure → Automation</div><div class=af-meta id=af-meta-flow1>ready</div><div class=af-ctrls><button class=af-btn id=af-play-flow1>Play</button></div></div><div class=af-stage><svg viewbox="0 0 900 260" class=af-svg height=100% preserveaspectratio=none width=100%><path d="M 40 180 C 280 120, 620 220, 860 80" stroke-dasharray="4 4" fill=none id=af-path-flow1 opacity=.35 stroke=#93c5fd stroke-width=1.5 /></svg><div class=af-lanes><div class=af-lane id=lane-data-flow1><div class=af-lbl>Data</div></div><div class=af-lane id=lane-struct-flow1><div class=af-lbl>Structure</div></div><div class=af-lane id=lane-act-flow1><div class=af-lbl>Automation</div></div></div><div class=af-results id=af-res-flow1><div class=af-tile><h5>Reconnect orphan ducts</h5><div class=num data-key=orphan_duct>0</div></div><div class=af-tile><h5>Fill missing SystemName</h5><div class=num data-key=missing_param>0</div></div><div class=af-tile><h5>Normalize tags</h5><div class=num data-key=tag_drift>0</div></div></div><div class=af-legend><span><i class="af-dot duct"></i>Ducts</span><span><i class="af-dot equip"></i>Equipment</span><span><i class="af-dot space"></i>Spaces</span></div></div></div><script src=https://DaltonGOO.github.io/DaltonGoodwin.github.io/vendor/anime/anime.umd.min.js></script><script>(function mount(id){
+  const root = document.getElementById(id);
+  if (!root) return;
+
+  const dataUrl      = root.getAttribute('data-src');
+  const mode         = root.getAttribute('data-mode') || 'fake';
+  const startMode    = root.getAttribute('data-start') || 'click';
+
+  const metaEl       = root.querySelector('#af-meta-flow1');
+  const stage        = root.querySelector('.af-stage');
+  const laneData     = root.querySelector('#lane-data-flow1');
+  const laneStruct   = root.querySelector('#lane-struct-flow1');
+  const laneAct      = root.querySelector('#lane-act-flow1');
+  const resBox       = root.querySelector('#af-res-flow1');
+  const playBtn      = root.querySelector('#af-play-flow1');
+
+  const prefersReduceSystem = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const prefersReduce = (startMode !== 'click') && prefersReduceSystem;
+
+  let tl = null;
+
+  function setMeta(stats){
+    metaEl.textContent = `${stats.Ducts} ducts • ${stats.Equipment} equipment • ${stats.Spaces} spaces`;
+  }
+  function countTo(el, to, ms){
+    const start = 0, dur = ms || 700; const t0 = performance.now();
+    function step(t){ const k = Math.min(1, (t - t0) / dur); el.textContent = Math.round(start + (to - start) * k); if (k < 1) requestAnimationFrame(step); }
+    requestAnimationFrame(step);
+  }
+  function clearStage(){
+    [...stage.querySelectorAll('.af-chip')].forEach(n => n.remove());
+    resBox.style.opacity = 0; resBox.style.transform = 'translateY(8px)';
+    resBox.querySelectorAll('.num').forEach(n => n.textContent = '0');
+    if (tl && tl.pause) tl.pause(); tl = null;
+    root.classList.remove('css-fallback');
+  }
+  function createChips(stats){
+    const chips = [];
+    const r = parseInt(getComputedStyle(root).getPropertyValue('--radius')) || 9;
+    const stageRect = stage.getBoundingClientRect();
+    const dataRect  = laneData.getBoundingClientRect();
+    const pad = 24;
+    function add(n, cls){
+      for (let i=0; i<n; i++){
+        const c = document.createElement('div');
+        c.className = 'af-chip ' + cls;
+        const x = (dataRect.left - stageRect.left) + pad + Math.random()*(dataRect.width  - pad - r*2);
+        const y = (dataRect.top  - stageRect.top ) + pad + Math.random()*(dataRect.height - pad - r*2);
+        c.style.left = x + 'px'; c.style.top = y + 'px';
+        stage.appendChild(c); chips.push(c);
+      }
+    }
+    add(stats.Ducts, 'type-duct'); add(stats.Equipment, 'type-equip'); add(stats.Spaces, 'type-space');
+    return chips;
+  }
+  function showResults(stats){
+    resBox.style.opacity = 1; resBox.style.transform = 'none';
+    resBox.querySelectorAll('.num').forEach(el=>{ const key = el.getAttribute('data-key'); countTo(el, stats.Violations[key] || 0, 800); });
+  }
+
+  function animateWithAnime(stats, chips){
+    const anime = window.anime;
+    const stageRect  = stage.getBoundingClientRect();
+    const dataRect   = laneData.getBoundingClientRect();
+    const structRect = laneStruct.getBoundingClientRect();
+    const actRect    = laneAct.getBoundingClientRect();
+    const dataCenterX   = (dataRect.left   - stageRect.left) + dataRect.width/2;
+    const structCenterX = (structRect.left - stageRect.left) + structRect.width/2;
+    const actCenterX    = (actRect.left    - stageRect.left) + actRect.width/2;
+    const dxStruct = structCenterX - dataCenterX;
+    const dxAct    = actCenterX    - dataCenterX;
+    const moversToAct    = chips.filter((_,i)=> i % 3 === 0);
+    const moversToStruct = chips.filter((_,i)=> i % 3 !== 0);
+
+    tl = anime.timeline({ autoplay: false, easing:'easeOutQuad' });
+    tl.add({ targets: chips, opacity:[0,1], translateY:[8,0], delay:anime.stagger(14), duration:320 });
+    tl.add({ targets: moversToStruct,
+             left:(el)=> (parseFloat(el.style.left)+dxStruct)+'px',
+             top:(el)=>  (parseFloat(el.style.top)+((Math.random()*40)-20))+'px',
+             duration:900, delay:anime.stagger(18) }, '-=120');
+    tl.add({ targets: moversToAct,
+             left:(el)=> (parseFloat(el.style.left)+dxAct)+'px',
+             top:(el)=>  parseFloat(el.style.top)+'px',
+             duration:1200, delay:anime.stagger(30,{start:100}) }, '-=600');
+    tl.add({ targets: resBox, opacity:[0,1], translateY:[8,0], duration:380, begin:()=>showResults(stats) }, '-=200');
+    tl.play();
+  }
+
+  function animateWithCSS(stats, chips){
+    // Fallback path (no anime.js). Uses CSS transitions with staggered setTimeouts.
+    root.classList.add('css-fallback');
+
+    const stageRect  = stage.getBoundingClientRect();
+    const dataRect   = laneData.getBoundingClientRect();
+    const structRect = laneStruct.getBoundingClientRect();
+    const actRect    = laneAct.getBoundingClientRect();
+    const dataCenterX   = (dataRect.left   - stageRect.left) + dataRect.width/2;
+    const structCenterX = (structRect.left - stageRect.left) + structRect.width/2;
+    const actCenterX    = (actRect.left    - stageRect.left) + actRect.width/2;
+    const dxStruct = structCenterX - dataCenterX;
+    const dxAct    = actCenterX    - dataCenterX;
+
+    const moversToAct    = chips.filter((_,i)=> i % 3 === 0);
+    const moversToStruct = chips.filter((_,i)=> i % 3 !== 0);
+
+    // 1) Fade in (stagger)
+    chips.forEach((c,i)=> setTimeout(()=>{ c.style.opacity=1; c.style.transform='translateY(0)'; }, 14*i));
+
+    // 2) Cluster into Structure
+    setTimeout(()=>{
+      moversToStruct.forEach((el,i)=>{
+        const left = parseFloat(el.style.left) + dxStruct;
+        const top  = parseFloat(el.style.top)  + ((Math.random()*40)-20);
+        setTimeout(()=>{ el.style.left = left+'px'; el.style.top = top+'px'; }, 18*i);
+      });
+    }, 200);
+
+    // 3) Slide to Automation
+    setTimeout(()=>{
+      moversToAct.forEach((el,i)=>{
+        const left = parseFloat(el.style.left) + dxAct;
+        const top  = parseFloat(el.style.top);
+        setTimeout(()=>{ el.style.left = left+'px'; el.style.top = top+'px'; }, 30*i + 100);
+      });
+    }, 600);
+
+    // 4) Reveal results
+    setTimeout(()=>{ resBox.style.opacity=1; resBox.style.transform='translateY(0)'; showResults(stats); }, 1000);
+  }
+
+  function buildFake(){
+    const ducts = 40 + Math.floor(Math.random()*20);
+    const equip = 12 + Math.floor(Math.random()*10);
+    const spaces= 8 + Math.floor(Math.random()*8);
+    const viol = {
+      orphan_duct: Math.max(2, Math.round(ducts*0.18)),
+      missing_param: Math.max(2, Math.round(equip*0.45)),
+      tag_drift: Math.max(1, Math.round(equip*0.30))
+    };
+    return { Ducts: ducts, Equipment: equip, Spaces: spaces, Violations: viol };
+  }
+
+  function run(){
+    clearStage();
+    const stats = (mode === 'fake') ? buildFake() : null;
+    const launch = (data)=>{
+      setMeta(data);
+      const chips = createChips(data);
+      const canAnime = !prefersReduce && window.anime && typeof window.anime.timeline === 'function';
+      if (canAnime) animateWithAnime(data, chips);
+      else          animateWithCSS(data, chips);
+    };
+
+    if (stats) return launch(stats);
+    fetch(dataUrl, { cache:'no-store' })
+      .then(r => r.json())
+      .then(data => launch({
+        Ducts:(data.Ducts||[]).length, Equipment:(data.Equipment||[]).length, Spaces:(data.Spaces||[]).length,
+        Violations:{ orphan_duct:5, missing_param:8, tag_drift:3 }
+      }))
+      .catch(()=> { metaEl.textContent = 'failed to load data'; });
+  }
+
+  // Controls
+  const play = () => {
+    playBtn.disabled = true; playBtn.textContent = 'Playing…';
+    run();
+    setTimeout(()=>{ playBtn.disabled=false; playBtn.textContent='Replay'; }, 2300);
+  };
+  playBtn.addEventListener('click', play);
+
+  if (startMode === 'view'){
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{ if (e.isIntersecting && e.intersectionRatio > 0.35){ play(); io.disconnect(); }});
+    }, { threshold:[0,.35,1], rootMargin:'0px 0px -20% 0px' });
+    io.observe(root);
+  }
+})("auto-flow-flow1");</script><hr><p><strong>In short:</strong><br> When you expose model data, you expose logic.<br> When you structure it, you gain insight.<br> When you automate with that insight, you get tools that <em>understand</em> what they’re helping you build.<p>That’s what Revit doesn’t show you —<br> and what we can finally start to see.<p><a class=hero-btn href=/blog/ style=margin-bottom:1.5rem;display:inline-block>← Back to Blog</a> | <a class=hero-btn href=/ style=margin-bottom:1.5rem;display:inline-block>Home</a></div></section><script src=/vendor/anime/anime.umd.min.js></script><script>const { animate, stagger } = anime;
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // ---- helpers ----
+    function splitWords(el){
+      if(!el) return [];
+      const words = (el.textContent || '').trim().split(/\s+/);
+      el.textContent = '';
+      return words.map(w=>{
+        const span = document.createElement('span');
+        span.className = 'word';
+        span.textContent = w + ' ';
+        el.appendChild(span);
+        return span;
+      });
+    }
+
+    // ---- homepage hero (looks for #hero-title) ----
+    function heroReveal(){
+      const h = document.querySelector('#hero-title');
+      if(!h) return;
+      if(prefersReduced){ h.style.opacity = 1; return; }
+      const parts = splitWords(h);
+      animate(parts, { opacity: [0,1], translateY: [12,0] }, { duration: 500, delay: (_,i)=> i*45, easing: 'easeOutCubic' });
+    }
+
+    // ---- article underline (looks for .title-underline) ----
+    function titleUnderline(){
+      const u = document.querySelector('.title-underline');
+      if(!u) return;
+      if(prefersReduced){ u.style.width = '100%'; return; }
+      animate(u, { width: ['0%','100%'] }, { duration: 650, easing: 'easeOutCubic' });
+    }
+
+    // ---- reading progress (adds bar if not present) ----
+    function readingProgress(){
+      let bar = document.getElementById('progress-bar');
+      if(!bar){
+        bar = document.createElement('div');
+        bar.id = 'progress-bar';
+        document.body.appendChild(bar);
+      }
+      const update = ()=>{
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const pct = max > 0 ? (window.scrollY / max) * 100 : 0;
+        if(prefersReduced){ bar.style.width = pct + '%'; return; }
+        animate(bar, { width: pct + '%' }, { duration: 120, easing: 'linear' });
+      };
+      update();
+      window.addEventListener('scroll', update, { passive:true });
+      window.addEventListener('resize', update);
+    }
+
+    // ---- system pulse (looks for #pulse span elements) ----
+    function initPulse(){
+      const dots = document.querySelectorAll('#pulse span');
+      if (dots.length === 0) return;
+      if (prefersReduced){ dots.forEach(d => d.style.opacity = 1); return; }
+      animate(dots, { opacity: [0.2, 1], scale: [1, 1.4] }, {
+        delay: stagger(250, { direction: 'alternate' }),
+        duration: 700,
+        easing: 'easeInOutSine',
+        loop: true,
+        direction: 'alternate'
+      });
+    }
+
+    // ---- on load ----
+    document.addEventListener('DOMContentLoaded', ()=>{
+      heroReveal();
+      titleUnderline();
+      readingProgress();
+      initPulse();   // ← enables the system pulse on pages that include #pulse
+    });</script><script src=https://DaltonGOO.github.io/DaltonGoodwin.github.io/js/app.js></script>
