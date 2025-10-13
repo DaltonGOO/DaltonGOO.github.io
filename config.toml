@@ -1,4 +1,5 @@
-base_url = "https://DaltonGOO.github.io/DaltonGoodwin.github.io/"
+base_url = "https://daltongoo.github.io/"
+
 compile_sass = true
 minify_html = true
 
