@@ -1,0 +1,96 @@
+{
+  "Ducts": [
+    {
+      "Id": 1001234,
+      "SystemName": "Supply Air",
+      "Shape": "Round",
+      "Diameter_in": 12.0,
+      "Length_ft": 23.5,
+      "TypeName": "12in Round - Galvanized",
+      "Flow_CFM": 750,
+      "ConnectedTo": [1001250, 1001262]
+    },
+    {
+      "Id": 1001235,
+      "SystemName": "Return Air",
+      "Shape": "Rectangular",
+      "Width_in": 18.0,
+      "Height_in": 12.0,
+      "Length_ft": 18.2,
+      "TypeName": "18x12 Rect - Galvanized",
+      "Flow_CFM": 450,
+      "ConnectedTo": [1001251]
+    },
+    {
+      "Id": 1001236,
+      "SystemName": "Exhaust",
+      "Shape": "Round",
+      "Diameter_in": 10.0,
+      "Length_ft": 16.9,
+      "TypeName": "10in Round - Aluminum",
+      "Flow_CFM": 310,
+      "ConnectedTo": [1001270]
+    }
+  ],
+  "Equipment": [
+    {
+      "Id": 1001250,
+      "Family": "VAV Box",
+      "TypeName": "VAV Box - Medium",
+      "Flow_CFM": 500,
+      "Space": "Open Office 1202",
+      "System": "Supply Air",
+      "Location": { "X_ft": 45.3, "Y_ft": 23.8, "Z_ft": 10.0 }
+    },
+    {
+      "Id": 1001251,
+      "Family": "Return Grille",
+      "TypeName": "24x24 Lay-In",
+      "Flow_CFM": 450,
+      "Space": "Open Office 1202",
+      "System": "Return Air",
+      "Location": { "X_ft": 45.8, "Y_ft": 20.4, "Z_ft": 9.5 }
+    },
+    {
+      "Id": 1001262,
+      "Family": "Diffuser",
+      "TypeName": "Square Plaque",
+      "Flow_CFM": 250,
+      "Space": "Conference 1205",
+      "System": "Supply Air",
+      "Location": { "X_ft": 60.2, "Y_ft": 31.7, "Z_ft": 9.5 }
+    },
+    {
+      "Id": 1001270,
+      "Family": "Exhaust Grille",
+      "TypeName": "12x12",
+      "Flow_CFM": 310,
+      "Space": "Conference 1205",
+      "System": "Exhaust",
+      "Location": { "X_ft": 61.0, "Y_ft": 31.5, "Z_ft": 9.5 }
+    }
+  ],
+  "Spaces": [
+    {
+      "Id": 20010,
+      "Name": "Open Office 1202",
+      "Area_sqft": 1150.5,
+      "Level": "Level 2",
+      "ConnectedSystems": ["Supply Air", "Return Air"]
+    },
+    {
+      "Id": 20011,
+      "Name": "Conference 1205",
+      "Area_sqft": 280.3,
+      "Level": "Level 2",
+      "ConnectedSystems": ["Supply Air", "Exhaust"]
+    }
+  ],
+  "Metadata": {
+    "Project": "Demo Building – Mechanical",
+    "ModelPath": "\\Demo_Building\\MEP\\MEP_Model.rvt",
+    "RevitVersion": 2026,
+    "DateExtracted": "2025-10-10T14:35:00-05:00",
+    "Author": "Dalton Goodwin"
+  }
+}
