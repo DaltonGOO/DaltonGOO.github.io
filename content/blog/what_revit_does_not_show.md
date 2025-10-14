@@ -12,18 +12,18 @@ From Revit's opaque model data to explorable structures that let us see how our 
 
 Revit does a good job of showing you what you built but not what your model *is.*
 
-When I started pulling data out of models, I wasn’t looking for KPIs or dashboards. I wanted to understand how things connect. Which systems talk to which, and which families actually matter. Even something as small as how an object interacts with rooms or spaces can reveal how consistently data is captured. Once you understand what’s reliable (and what isn’t), you can start writing rules around it.
-
-I once spent days digging into electrical “room insertion” logic. That single investigation led to tools that *survive* messy modeling and still produce trustworthy data.
+When I started pulling data out of models, I wasn’t looking for KPIs or dashboards. I wanted to understand how things connect. Which systems talk to which, and which families matter. Even something as small as how an object interacts with rooms or spaces can reveal how consistently data is captured. Once you understand what’s reliable (and what isn’t), you can start writing rules around it.
 
 Over the years I built dozens of dashboards. They looked nice, but they didn’t really *explain* much. They just showed more data.
 
 It took me a little to realize the problem isn’t that we don’t have enough data. It’s that we don’t understand how our workflows connect to it.  
 **How we interact with our tools shapes what we see and what we fail to see.**
 
+I once spent days digging into electrical “room insertion” logic. That single investigation led to tools that *survive* messy modeling and still produce trustworthy data.
+
 It’s easy to treat solutions as limited by the tools themselves. Most learn just enough to get through a project, check the boxes, and make the model “work.” But I think there is a lot of value that comes from curiosity. Asking *why* the model behaves the way it does and what its structure reveals about how we work.
 
-To create meaningful value for clients and teams, we have to move past “use the same tools the same way.” We can automate, analyze, and connect data across entire portfolios but yet so much of our time still disappears into warnings and “perfect” 2D drawings.
+To create real value for clients and teams, we have to move past “use the same tools the same way.” We can automate, analyze, and connect data across portfolios yet so much time still disappears into warnings and chasing "perfect" 2D drawings.
 
 We can build systems that *learn* from our projects.  
 We can capture knowledge, not just geometry.
@@ -66,7 +66,7 @@ This isn’t just for “tech people.” Designers, BIM managers, and even owner
 - What drives that parameter?  
 - Is the model behaving how we think it is?  
 
-Once the logic becomes visible, the model stops being a static file and starts acting like a living system that can evolve and adapt.
+Once the logic becomes visible, the model stops being a static file and can start acting like a living system that can evolve and adapt.
 
 ---
 
@@ -81,7 +81,9 @@ I need a system that recognizes the condition and applies a logical reconnection
 
 **Visualization** can help us discover patterns.  
 **Automation** helps us respond to them.  
-Together, they form the foundation of **autonomous interpretation** a model that can explain and improve itself.
+Together, they form the foundation of what I think of as **autonomous interpretation** a model that can explain and improve itself.
+
+Revit doesn’t make these relationships easy to see, but when you pull the data out, you can start to understand the model’s logic directly.
 
 ---
 
@@ -98,31 +100,78 @@ Together, they form the foundation of **autonomous interpretation** a model that
 
 | Condition | Visual cue | Autonomous action |
 |---|---|---|
-| Orphan duct end | Show orphan endpoints | Propose shortest valid reconnection honoring clearance/slope; preview Δlength |
+| Orphan duct connector | Show orphan endpoints | Propose shortest valid reconnection honoring clearance/slope; preview Δlength |
 | Missing parameter | Color by family/field | Auto-fill from dictionary or prompt once |
-| Clearance violation | Show crossing graph | Minimal-nudge reroute with system priority |
-| Tag drift | Color by source | Normalize from canonical tags |
-| Over-segmented run | Fittings heatmap | Merge segments per spec; estimate impact |
+| Clearance violation | Show conflict graph | Minimal-nudge reroute with system priority |
+| Space type mismatch | Color by space type | Propose reassignment based on dictionary or vector similarity |
+
 
 ---
 
 ### From a tiny rule to a chain of reasoning
 
-The smallest piece of logic a **rule** can become the foundation for intelligent behavior.  
+Even a small piece of logic like a simple rule can become the foundation for intelligent behavior.
 You start with a condition, define a response, then let patterns scale that response across models.
 
 ```python
+class Segment:
+    def __init__(self, id, end_a, end_b):
+        self.id = id
+        self.end_a = end_a
+        self.end_b = end_b
+
+class End:
+    def __init__(self, connected_to=None):
+        self.connected_to = connected_to
+
+class Element:
+    def __init__(self, id, SystemName=None):
+        self.id = id
+        self.SystemName = SystemName
+
+# --- Rules ---
+
 def is_orphan_duct(seg):
     return (seg.end_a.connected_to is None) or (seg.end_b.connected_to is None)
 
 def missing_param(elem, name):
     return getattr(elem, name, None) in (None, "", 0)
 
-def propose_fix(elem):
-    if is_orphan_duct(elem):
-        return reconnect(elem)
-    elif missing_param(elem, "SystemName"):
-        return fill_from_dict(elem, "SystemName")
+def reconnect(seg):
+    return f"Segment {seg.id} reconnected logically."
+
+def fill_from_dict(elem, name):
+    fallback = {"SystemName": "Supply Air"}
+    value = fallback.get(name)
+    setattr(elem, name, value)
+    return f"Filled {name} for Element {elem.id} with '{value}'."
+
+def propose_fix(obj):
+    if isinstance(obj, Segment) and is_orphan_duct(obj):
+        return reconnect(obj)
+    elif isinstance(obj, Element) and missing_param(obj, "SystemName"):
+        return fill_from_dict(obj, "SystemName")
+    else:
+        return f"No fix needed for {type(obj).__name__} {obj.id}."
+
+# --- Sample data ---
+
+segments = [
+    Segment(1, End(None), End(2)),     # orphan at one end
+    Segment(2, End(1), End(3))         # connected both sides
+]
+
+elements = [
+    Element(10, SystemName="Return Air"),
+    Element(11, SystemName=None)
+]
+
+# --- Run checks ---
+items = segments + elements
+
+for item in items:
+    print(propose_fix(item))
+
 ```
 
 
@@ -131,10 +180,10 @@ Data defines what exists, structure defines how it connects, and automation defi
 
 That loop **observe → interpret → act** is how design tools start becoming intelligent collaborators rather than just containers of messy data.
 
-Once there is a foundation in place, automation stops being reports and one off automation, and the need for BIM cops disappears. It becomes a feedback system one that learns from your models, reinforces good behavior, and flags weak patterns before they turn into rework.
+Once that foundation exists, automation stops being a collection of one-off scripts or reports and the need for “BIM cops” disappears It becomes a feedback system one that learns from your models, reinforces good behavior, and can even flag weak patterns before they turn into rework.
 
-The goal isn’t to replace designers.  
-It’s to give them **visibility** and **agency** over how digital systems behave — making automation amplify decisions instead of hiding them behind black boxes.
+ 
+When you go past the surface of your tools, you gain visibility and agency. And automation starts to amplify your decisions instead of hiding them behind black boxes.
 
 {{ data_to_automation(id="flow1", demo="fake", start="click") }}
 
@@ -145,7 +194,5 @@ When you expose model data, you expose logic.
 When you structure it, you gain insight.  
 When you automate with that insight, you get tools that *understand* what they’re helping you build.
 
-That’s what Revit doesn’t show you —  
-and what we can finally start to see.
 
 <a href="/blog/" class="hero-btn" style="margin-bottom:1.5rem;display:inline-block;">← Back to Blog</a> | <a href="/" class="hero-btn" style="margin-bottom:1.5rem;display:inline-block;">Home</a>
