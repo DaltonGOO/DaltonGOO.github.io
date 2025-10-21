@@ -1,0 +1,291 @@
+<!-- templates/shortcodes/dynamo_viewer.html -->
+<!DOCTYPE html>
+<style>
+  html, body { margin:0; padding:0 }
+  .dyn-cy {
+    width: 100%;
+    height: 720px; /* taller */
+    border: 1px solid #e5e7eb;
+    border-radius: .75rem;
+    background: #0b1220;
+  }
+  .dyn-tip {
+    position: fixed; z-index: 9999; max-width: 420px; padding: 10px 12px; border-radius: 8px;
+    font: 13px system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Arial;
+    color: #eaf2ff; background: rgba(20,28,46,.96); border: 1px solid rgba(120,160,220,.25);
+    box-shadow: 0 8px 24px rgba(0,0,0,.35); display: none; pointer-events: none;
+  }
+</style>
+
+<div id="dyn-cy-{{ id | default(value="a") }}" class="dyn-cy"
+     data-meta='{{ get_url(path=meta) }}'
+     data-io='{{ get_url(path=io) }}'></div>
+<div id="dyn-tip-{{ id | default(value="a") }}" class="dyn-tip"></div>
+
+<script src="https://unpkg.com/cytoscape@3.24.0/dist/cytoscape.min.js"></script>
+<script>
+(async function mount(containerId, tipId){
+  const el = document.getElementById(containerId);
+  const tip = document.getElementById(tipId);
+  if (!el) return;
+
+  // ---- layout & sizing config ----
+  const CFG = {
+    scale: 1.35,       // spread preset X/Y
+    xShift: 40,
+    yShift: 20,
+    minW: 280,         // node width bounds
+    maxW: 600,
+    baseWPerChar: 10,  // width growth vs label length
+    baseH: 98,         // base height for title/padding
+    perPinH: 22,       // extra height per pin (max of sides)
+    portOffset: 26,    // distance from node edge to port dot
+    labelInset: 52,    // distance from edge to pin label
+    pinStepMin: 22,    // vertical spacing for pins
+    pinStepMax: 30
+  };
+
+  // read paths from attributes (static files on GitHub Pages)
+  const metaUrl = el.getAttribute('data-meta');
+  const ioUrl   = el.getAttribute('data-io');
+
+  // load data
+  const metaRes = await fetch(metaUrl, {cache:'no-store'});
+  if (!metaRes.ok) throw new Error('meta failed ' + metaRes.status);
+  const meta = await metaRes.json();
+
+  const ioRes = await fetch(ioUrl, {cache:'no-store'});
+  if (!ioRes.ok) throw new Error('io failed ' + ioRes.status);
+  const rawIO = await ioRes.json();
+  const raw = (rawIO && typeof rawIO === 'object' && rawIO.io) ? rawIO.io : rawIO;
+
+  // ---- normalize IO ----
+  const nodeDetailsById = {};
+  (Array.isArray(meta.Nodes) ? meta.Nodes : []).forEach(n=>{
+    nodeDetailsById[n.Id] = { concreteType: n.ConcreteType || '', nodeType: n.NodeType || '' };
+  });
+  const normPin = (p)=>({
+    id: p?.id ?? p?.Id ?? p?.portId ?? p?.PortId ?? '',
+    name: p?.name ?? p?.Name ?? p?.label ?? p?.Label ?? '',
+    description: p?.description ?? p?.Description ?? '',
+    usingDefaultValue: p?.UsingDefaultValue ?? p?.usingDefaultValue ?? null,
+    level: p?.Level ?? p?.level ?? null,
+    useLevels: p?.UseLevels ?? p?.useLevels ?? null,
+    keepListStructure: p?.KeepListStructure ?? p?.keepListStructure ?? null
+  });
+  const normalizeIO = (io)=>{
+    const map={};
+    if (Array.isArray(io)) {
+      io.forEach(e=>{
+        const nodeId = e?.id ?? e?.Id ?? e?.nodeId ?? e?.NodeId ?? e?.node_id ?? e?.nodeID;
+        if (!nodeId) return;
+        map[nodeId] = {
+          inputs:  (e?.inputs  ?? e?.Inputs  ?? []).map(normPin),
+          outputs: (e?.outputs ?? e?.Outputs ?? []).map(normPin),
+          name: e?.name ?? e?.Name ?? ''
+        };
+      });
+    } else if (io && typeof io==='object') {
+      for (const [k,v] of Object.entries(io)) {
+        map[k] = {
+          inputs:  (v?.inputs  ?? v?.Inputs  ?? []).map(normPin),
+          outputs: (v?.outputs ?? v?.Outputs ?? []).map(normPin),
+          name: v?.name ?? v?.Name ?? ''
+        };
+      }
+    }
+    return map;
+  };
+  const io = normalizeIO(raw);
+
+  // ---- build cytoscape elements (preset layout from NodeViews) ----
+  const views = (meta.View && meta.View.NodeViews) || [];
+  const elements = [];
+  const offsets = {};
+  const pinIndex = {};
+  const px = n => Math.round(n * 100) / 100;
+
+  views.forEach(v=>{
+    const id = v.Id;
+    const label = v.Name || id;
+
+    // spread positions
+    const cx = (v.X || 0) * CFG.scale + CFG.xShift;
+    const cy = (v.Y || 0) * CFG.scale + CFG.yShift;
+
+    const isCodeBlock = (label || '').toLowerCase().includes('code block');
+
+    // auto width from label length (wrapped)
+    const labelW = Math.min(
+      CFG.maxW,
+      Math.max(CFG.minW, (label?.length || 0) * CFG.baseWPerChar + 80)
+    );
+
+    let baseW = isCodeBlock ? Math.max(CFG.minW, 320) : labelW;
+    let baseH = isCodeBlock ? Math.max(CFG.baseH, 120) : CFG.baseH;
+
+    elements.push({ data:{ id, label, w:baseW, h:baseH, kind:isCodeBlock?'code':'node' }, position:{x:cx,y:cy} });
+
+    let nodeIO = io[id];
+    if (!nodeIO) {
+      const want = (v.Name || '').toLowerCase();
+      nodeIO = Object.values(io).find(e => (e.name || '').toLowerCase() === want) || {inputs:[], outputs:[]};
+    }
+
+    const inputs = nodeIO.inputs, outputs = nodeIO.outputs;
+
+    // grow height based on pin count (max of sides)
+    const pinsMax = Math.max(inputs.length, outputs.length);
+    baseH = Math.max(baseH, CFG.baseH + Math.max(0, pinsMax) * CFG.perPinH);
+    // update stored height for this node element
+    elements[elements.length-1].data.h = baseH;
+
+    const inStep  = inputs.length
+      ? Math.min(CFG.pinStepMax, Math.max(CFG.pinStepMin, (baseH - 28) / Math.max(1, inputs.length  - 1)))
+      : Math.max(CFG.pinStepMin, 20);
+    const outStep = outputs.length
+      ? Math.min(CFG.pinStepMax, Math.max(CFG.pinStepMin, (baseH - 28) / Math.max(1, outputs.length - 1)))
+      : Math.max(CFG.pinStepMin, 20);
+
+    const inTopY  = cy - ((inputs.length  - 1) * inStep) / 2;
+    const outTopY = cy - ((outputs.length - 1) * outStep) / 2;
+
+    const portOffset = CFG.portOffset, labelInset = CFG.labelInset;
+    const leftXOutside  = cx - baseW/2 - portOffset;
+    const rightXOutside = cx + baseW/2 + portOffset;
+    const leftLabelX    = cx - baseW/2 + labelInset;
+    const rightLabelX   = cx + baseW/2 - labelInset;
+
+    offsets[id] = { ports:[], labels:[] };
+
+    // inputs
+    inputs.forEach((pin,i)=>{
+      const y = px(inTopY + i*inStep);
+      const pinKey = pin.id || pin.name || String(i);
+      const portId = `${id}:in:${pinKey}`;
+      const labelId = `${portId}:label`;
+      elements.push({ data:{ id:portId, role:'port-in', owner:id }, position:{ x:px(leftXOutside), y }, grabbable:false, selectable:false });
+      elements.push({ data:{ id:labelId, role:'port-label-in', owner:id, label: pin.name || '' }, position:{ x:px(leftLabelX), y }, grabbable:false, selectable:false });
+      offsets[id].ports.push({ id:portId, dx:px(leftXOutside - cx), dy:px(y - cy) });
+      offsets[id].labels.push({ id:labelId, dx:px(leftLabelX - cx),  dy:px(y - cy) });
+      if (pin.id) pinIndex[pin.id] = portId;
+    });
+
+    // outputs
+    outputs.forEach((pin,i)=>{
+      const y = px(outTopY + i*outStep);
+      const pinKey = pin.id || pin.name || String(i);
+      const portId = `${id}:out:${pinKey}`;
+      const labelId = `${portId}:label`;
+      elements.push({ data:{ id:portId, role:'port-out', owner:id }, position:{ x:px(rightXOutside), y }, grabbable:false, selectable:false });
+      elements.push({ data:{ id:labelId, role:'port-label-out', owner:id, label: pin.name || '' }, position:{ x:px(rightLabelX), y }, grabbable:false, selectable:false });
+      offsets[id].ports.push({ id:portId, dx:px(rightXOutside - cx), dy:px(y - cy) });
+      offsets[id].labels.push({ id:labelId, dx:px(rightLabelX - cx),  dy:px(y - cy) });
+      if (pin.id) pinIndex[pin.id] = portId;
+    });
+  });
+
+  // wires from meta.Connectors (pin Ids)
+  (Array.isArray(meta.Connectors) ? meta.Connectors : []).forEach(c=>{
+    const src = pinIndex[c.Start], tgt = pinIndex[c.End];
+    if (!src || !tgt) return; // skip if IO not matched
+    elements.push({ data:{ id:`${c.Start}_${c.End}`, source:src, target:tgt }});
+  });
+
+  const cy = cytoscape({
+    container: el,
+    elements,
+    style: [
+      { selector: 'node[kind="node"], node[kind="code"]',
+        style: {
+          'shape':'round-rectangle','background-color':'#2876c9','border-width':4,'border-color':'#1f5da0',
+          'label':'data(label)','text-valign':'top','text-margin-y':8,'text-halign':'center','color':'#fff',
+          'font-weight':'bold','font-size':16,'text-wrap':'wrap','text-max-width':'data(w)',
+          'width':'data(w)','height':'data(h)','padding':'10px','z-index':0
+        }},
+      { selector: 'node[role="port-in"], node[role="port-out"]',
+        style: { 'shape':'ellipse','width':10,'height':10,'background-color':'#0b3e7a','border-width':2,'border-color':'#cfe5ff','events':'no' }},
+      { selector: 'node[role ^= "port-label"]',
+        style: { 'background-opacity':0,'label':'data(label)','text-halign':'center','text-valign':'center','color':'#fff','font-size':14,'events':'no' }},
+      { selector: 'edge',
+        style: { 'width':2, 'curve-style':'bezier','line-color':'#a9c5ff','target-arrow-color':'#a9c5ff','target-arrow-shape':'triangle','opacity':0.9 } }
+    ],
+    layout: { name: 'preset' },
+    wheelSensitivity: 0.2
+  });
+
+  cy.nodes('[role ^= "port"]').ungrabify().unselectify();
+
+  // keep port dots + labels glued to their parent
+  function repositionChildren(parentId){
+    const parent = cy.getElementById(parentId);
+    const pos = parent.position();
+    const set = (offsets[parentId] || {});
+    (set.ports  || []).forEach(p => cy.getElementById(p.id).position({ x: pos.x + p.dx, y: pos.y + p.dy }));
+    (set.labels || []).forEach(l => cy.getElementById(l.id).position({ x: pos.x + l.dx, y: pos.y + l.dy }));
+  }
+  cy.on('drag dragfree', 'node[kind]', e => repositionChildren(e.target.id()));
+  cy.nodes('node[kind]').forEach(n => repositionChildren(n.id()));
+
+  // tiny tooltip
+  function formatFlags(p){
+    const bits=[];
+    if (p.level!=null) bits.push(`Level: ${p.level}`);
+    if (p.useLevels!=null) bits.push(`UseLevels: ${p.useLevels}`);
+    if (p.keepListStructure!=null) bits.push(`KeepListStructure: ${p.keepListStructure}`);
+    if (p.usingDefaultValue!=null) bits.push(`UsingDefaultValue: ${p.usingDefaultValue}`);
+    return bits.length ? ` (${bits.join(' • ')})` : '';
+  }
+  function buildTip(nodeId, label){
+    const detail = nodeDetailsById[nodeId] || {};
+    const nodeIO = io[nodeId] || Object.values(io).find(e => (e.name||'').toLowerCase()===(label||'').toLowerCase()) || {inputs:[], outputs:[]};
+    const ins  = nodeIO.inputs.map(p=>`<li><b>${p.name||p.id||'input'}</b>${formatFlags(p)}${p.description?` — ${p.description}`:''}</li>`).join('');
+    const outs = nodeIO.outputs.map(p=>`<li><b>${p.name||p.id||'output'}</b>${formatFlags(p)}${p.description?` — ${p.description}`:''}</li>`).join('');
+    return `<div style="font-weight:700;margin-bottom:6px;color:#fff">${label||nodeId}</div>` +
+           (detail.concreteType?`<div style="font-size:12px;opacity:.8;margin-bottom:8px">${detail.concreteType}</div>`:'') +
+           (ins? `<div style="font-weight:600;margin-top:8px">Inputs</div><ul>${ins}</ul>`:'') +
+           (outs?`<div style="font-weight:600;margin-top:8px">Outputs</div><ul>${outs}</ul>`:'');
+  }
+  function showTip(e){
+    const t = e.target, id = t.id(), label=t.data('label');
+    tip.innerHTML = buildTip(id, label);
+    tip.style.display='block';
+    positionTip(e.renderedPosition || t.renderedPosition());
+  }
+  function hideTip(){ tip.style.display='none'; }
+  function positionTip(rpos){
+    if (!rpos) return;
+    const rect = cy.container().getBoundingClientRect();
+    tip.style.left = (rect.left + rpos.x + 16) + 'px';
+    tip.style.top  = (rect.top  + rpos.y + 12) + 'px';
+  }
+  cy.on('mouseover','node[kind]',(e)=>showTip(e));
+  cy.on('mouseout', 'node[kind]', hideTip);
+  cy.on('mousemove','node[kind]',(e)=>{ if (tip.style.display==='block') positionTip(e.renderedPosition || e.target.renderedPosition()); });
+  cy.on('drag', 'node[kind]', hideTip);
+
+  // --- optional: relax pass to gently push nodes apart, then fit
+  function relax(minDist=260, steps=2){
+    for(let s=0; s<steps; s++){
+      const ns = cy.nodes('node[kind]');
+      for (let i=0;i<ns.length;i++){
+        for (let j=i+1;j<ns.length;j++){
+          const a=ns[i], b=ns[j];
+          const dx=b.position('x')-a.position('x');
+          const dy=b.position('y')-a.position('y');
+          const d=Math.hypot(dx,dy) || 1;
+          if (d < minDist){
+            const push=(minDist-d)/2;
+            const ux=dx/d, uy=dy/d;
+            a.position({x:a.position('x')-ux*push, y:a.position('y')-uy*push});
+            b.position({x:b.position('x')+ux*push, y:b.position('y')+uy*push});
+          }
+        }
+      }
+      // re-glue ports/labels after nudging
+      cy.nodes('node[kind]').forEach(n => repositionChildren(n.id()));
+    }
+  }
+  cy.ready(()=>{ relax(260, 2); cy.fit(cy.$('node[kind]'), 60); });
+})("dyn-cy-{{ id | default(value='a') }}", "dyn-tip-{{ id | default(value='a') }}");
+</script>

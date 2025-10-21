@@ -1,7 +1,7 @@
 +++
-title = "What Revit Does Not Show You"
+title = "Create an automation using the gbXML data schema"
 date = 2025-10-06
-draft = false
+draft = true
 [extra]
 image = "/images/blog/what_revit_does_not_show/Thumbnail - What Revit Does Not  Show You.png"
 tags = ["revit", "bim", "aec", "automation", "data", "visualization"]
@@ -9,7 +9,7 @@ tags = ["revit", "bim", "aec", "automation", "data", "visualization"]
 +++
 <a href="/blog/" class="hero-btn" style="margin-bottom:1.5rem;display:inline-block;">← Back to Blog</a> | <a href="/" class="hero-btn" style="margin-bottom:1.5rem;display:inline-block;">Home</a>
 
-From Revit's opaque model data to explorable structures that let us see how our models actually work. Understanding model logic to build smarter automation.
+From Revit's opaque model data to explorable structures that let us see how our models actually work.
 
 Revit does a good job of showing you what you built but not what your model *is.*
 
@@ -113,9 +113,8 @@ Revit doesn’t make these relationships easy to see, but when you pull the data
 
 Even a small piece of logic like a simple rule can become the foundation for intelligent behavior.
 You start with a condition, define a response, then let patterns scale that response across models.
-The code below can be directly executed in jupyter notebook or any python environment to demonstrate the concept of autonomous model interpretation.
+
 ```python
-# --- Data Structures ---
 class Segment:
     def __init__(self, id, end_a, end_b):
         self.id = id

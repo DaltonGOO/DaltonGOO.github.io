@@ -12,11 +12,15 @@ I’m enjoy automation, design, and building creative tools.
 
 - Blog posts on workflow, coding, design, data, and engineering
 - Interactive tools and utilities
-- Resources and tutorials
 - Project showcases and experiments
 
 
 
 ---
+YouTube: [The BIM Coordinator](https://www.youtube.com/@TheBIMCoordinator/featured)
+
+GitHub: [daltongoo](https://github.com/DaltonGOO)
+
+LinkedIn: [Dalton Goodwin](https://www.linkedin.com/in/dalton-goodwin/)
 
 Feel free to reach out: [dalton.c.goodwin@gmail.com](mailto:dalton.c.goodwin@gmail.com)

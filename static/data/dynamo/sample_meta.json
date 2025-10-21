@@ -1,0 +1,15 @@
+{
+  "Nodes": [
+    { "Id": "n1", "ConcreteType": "Core.NodeA" },
+    { "Id": "n2", "ConcreteType": "Core.NodeB" }
+  ],
+  "View": {
+    "NodeViews": [
+      { "Id": "n1", "Name": "Node A", "X": 100, "Y": 100 },
+      { "Id": "n2", "Name": "Node B", "X": 380, "Y": 120 }
+    ]
+  },
+  "Connectors": [
+    { "Start": "pin_n1_out", "End": "pin_n2_in" }
+  ]
+}

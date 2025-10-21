@@ -8,7 +8,21 @@ template = "tools.html"
 Welcome to the Tools page!  
 Here you'll find interactive utilities, calculators, and automation helpers.
 
+## In Development
+
+* Auto-Sleeve & Opening Manager
+
+
+
 ## Featured Tools
+
+### Dynamo Scripts
+
+### pyRevit Scripts
+
+### C# Add-ins
+
+### Python Utilities
 
 *More tools coming soon!*
 
