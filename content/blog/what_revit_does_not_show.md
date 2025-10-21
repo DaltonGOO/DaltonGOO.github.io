@@ -9,7 +9,7 @@ tags = ["revit", "bim", "aec", "automation", "data", "visualization"]
 +++
 <a href="/blog/" class="hero-btn" style="margin-bottom:1.5rem;display:inline-block;">← Back to Blog</a> | <a href="/" class="hero-btn" style="margin-bottom:1.5rem;display:inline-block;">Home</a>
 
-From Revit's opaque model data to explorable structures that let us see how our models actually work. Understanding model logic to build smarter automation.
+From Revit's opaque model data to explorable structures that let us see how our models actually work. We will get an understanding of model logic to build smarter automation in this post.
 
 Revit does a good job of showing you what you built but not what your model *is.*
 
