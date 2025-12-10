@@ -14,7 +14,7 @@ I’m enjoy automation, design, and building creative tools.
 - Interactive tools and utilities
 - Project showcases and experiments
 
-
+[View my portfolio](/portfolio/)
 
 ---
 YouTube: [The BIM Coordinator](https://www.youtube.com/@TheBIMCoordinator/featured)

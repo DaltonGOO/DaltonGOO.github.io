@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>{{ section.title }}</h1>
+
+  {# show the body of content/portfolio/_index.md #}
+  {% if section.content and section.content | length > 0 %}
+    <div class="prose max-w-3xl mb-8">
+      {{ section.content | safe }}
+    </div>
+  {% endif %}
+
+  {# start with direct pages in this section #}
+  {% set all_pages = section.pages %}
+
+  {# also pull pages from any child subsections #}
+  {% if section.subsections and section.subsections | length > 0 %}
+    {% for s in section.subsections %}
+      {% set sub = get_section(path=s) %}
+      {% set all_pages = all_pages ~ sub.pages %}
+    {% endfor %}
+  {% endif %}
+
+  {# sort newest first #}
+  {% set all_pages = all_pages | sort(attribute="date") | reverse %}
+
+  <div class="portfolio-list grid gap-6 md:grid-cols-2">
+    {% for page in all_pages %}
+      <div class="portfolio-card border rounded-xl p-5">
+        {% if page.extra.cover %}
+          <a href="{{ page.permalink }}">
+            <img src="{{ get_url(path=page.extra.cover) }}" alt="{{ page.title }}" class="mb-4 rounded-lg">
+          </a>
+        {% endif %}
+        <h2 class="text-xl font-semibold mb-2">
+          <a href="{{ page.permalink }}">{{ page.title }}</a>
+        </h2>
+        <div class="text-sm text-gray-500 mb-3">
+          {% if page.date %}<time datetime="{{ page.date | date(format="%Y-%m-%d") }}">{{ page.date | date(format="%b %e, %Y") }}</time>{% endif %}
+        </div>
+        <p>
+          {{ page.summary 
+              | default(value=page.description) 
+              | default(value=page.content | striptags | truncate(length=180)) 
+              | safe }}
+        </p>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% if all_pages | length == 0 %}
+    <p>No projects yet. Add pages under <code>content/portfolio/</code>.</p>
+  {% endif %}
+{% endblock content %}
