@@ -1,0 +1,74 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>MyBlog</title><link href=https://daltongoo.github.io/style.css rel=stylesheet><style>#progress-bar{z-index:999;background:currentColor;width:0;height:3px;position:fixed;top:0;left:0}.title-underline{background:currentColor;width:0;height:2px;margin:.5rem 0 1.25rem;display:block}.word{will-change:transform,opacity;display:inline-block}</style><body><section class=section><div class=container><h1>Portfolio</h1><div class="prose max-w-3xl mb-8"><p><a class=hero-btn href=/ style=margin-bottom:1.5rem;display:inline-block>Home</a><p>Welcome to my portfolio.<br> I build systems that connect <strong>design, data, and automation</strong> — tools that make complex processes more intelligent, predictable, and scalable across the AEC tech stack.<p>Each project below represents a piece of that goal. Some started as small utilities, others became frameworks used across teams. Together they reflect how I approach design technology: technically deep, but grounded in how people actually work.<hr></div><div class="portfolio-list grid gap-6 md:grid-cols-2"><div class="portfolio-card border rounded-xl p-5"><a href=https://daltongoo.github.io/portfolio/revit-mep-agent/> <img alt="Revit MEP Agent" class="mb-4 rounded-lg" src=https://daltongoo.github.io/images/portfolio/revit-mep-agent/cover.png> </a><h2 class="text-xl font-semibold mb-2"><a href=https://daltongoo.github.io/portfolio/revit-mep-agent/>Revit MEP Agent</a></h2><div class="text-sm text-gray-500 mb-3"><time datetime=2025-10-25>Oct 25, 2025</time></div><p><p>The <strong>Revit MEP Agent</strong> is a local event-driven system I built to bridge Revit and external computation layers.<br> It’s not a chatbot or automation script — it’s a deterministic agent that observes, interprets, and reacts to model data in real time across multiple MEP disciplines.</div><div class="portfolio-card border rounded-xl p-5"><a href=https://daltongoo.github.io/portfolio/data-center-generator/> <img alt="Data Center Generator" class="mb-4 rounded-lg" src=https://daltongoo.github.io/images/portfolio/data-center-generator/cover.png> </a><h2 class="text-xl font-semibold mb-2"><a href=https://daltongoo.github.io/portfolio/data-center-generator/>Data Center Generator</a></h2><div class="text-sm text-gray-500 mb-3"><time datetime=2025-08-10>Aug 10, 2025</time></div><p><p>I like it when tools make the design <em>clearer</em>, not noisier.<p>This is a small slice of how I approach data centers: take the logic we use every day (program, constraints, redundancy, flows), make it explicit, then let automation do the repetitive part. It’s simple rules, modeled in a way that can evolve.</div></div></div></section><script src=/vendor/anime/anime.umd.min.js></script><script>const { animate, stagger } = anime;
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // ---- helpers ----
+    function splitWords(el){
+      if(!el) return [];
+      const words = (el.textContent || '').trim().split(/\s+/);
+      el.textContent = '';
+      return words.map(w=>{
+        const span = document.createElement('span');
+        span.className = 'word';
+        span.textContent = w + ' ';
+        el.appendChild(span);
+        return span;
+      });
+    }
+
+    // ---- homepage hero (looks for #hero-title) ----
+    function heroReveal(){
+      const h = document.querySelector('#hero-title');
+      if(!h) return;
+      if(prefersReduced){ h.style.opacity = 1; return; }
+      const parts = splitWords(h);
+      animate(parts, { opacity: [0,1], translateY: [12,0] }, { duration: 500, delay: (_,i)=> i*45, easing: 'easeOutCubic' });
+    }
+
+    // ---- article underline (looks for .title-underline) ----
+    function titleUnderline(){
+      const u = document.querySelector('.title-underline');
+      if(!u) return;
+      if(prefersReduced){ u.style.width = '100%'; return; }
+      animate(u, { width: ['0%','100%'] }, { duration: 650, easing: 'easeOutCubic' });
+    }
+
+    // ---- reading progress (adds bar if not present) ----
+    function readingProgress(){
+      let bar = document.getElementById('progress-bar');
+      if(!bar){
+        bar = document.createElement('div');
+        bar.id = 'progress-bar';
+        document.body.appendChild(bar);
+      }
+      const update = ()=>{
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const pct = max > 0 ? (window.scrollY / max) * 100 : 0;
+        if(prefersReduced){ bar.style.width = pct + '%'; return; }
+        animate(bar, { width: pct + '%' }, { duration: 120, easing: 'linear' });
+      };
+      update();
+      window.addEventListener('scroll', update, { passive:true });
+      window.addEventListener('resize', update);
+    }
+
+    // ---- system pulse (looks for #pulse span elements) ----
+    function initPulse(){
+      const dots = document.querySelectorAll('#pulse span');
+      if (dots.length === 0) return;
+      if (prefersReduced){ dots.forEach(d => d.style.opacity = 1); return; }
+      animate(dots, { opacity: [0.2, 1], scale: [1, 1.4] }, {
+        delay: stagger(250, { direction: 'alternate' }),
+        duration: 700,
+        easing: 'easeInOutSine',
+        loop: true,
+        direction: 'alternate'
+      });
+    }
+
+    // ---- on load ----
+    document.addEventListener('DOMContentLoaded', ()=>{
+      heroReveal();
+      titleUnderline();
+      readingProgress();
+      initPulse();   // ← enables the system pulse on pages that include #pulse
+    });</script><script src=https://daltongoo.github.io/js/app.js></script>

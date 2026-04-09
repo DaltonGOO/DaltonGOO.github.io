@@ -1,0 +1,277 @@
+{
+  "io": [
+    {
+      "id": "P0",
+      "name": "Program Inputs",
+      "inputs": [],
+      "outputs": [
+        {
+          "id": "PIN_P0_HALLS",
+          "name": "data_halls",
+          "description": "Count/size targets"
+        },
+        {
+          "id": "PIN_P0_TIER",
+          "name": "redundancy_tier",
+          "description": "Tier I–IV"
+        },
+        {
+          "id": "PIN_P0_ITLOAD",
+          "name": "it_load",
+          "description": "Total kW target"
+        }
+      ]
+    },
+    {
+      "id": "C0",
+      "name": "Site Constraints",
+      "inputs": [],
+      "outputs": [
+        {
+          "id": "PIN_C0_BOUNDS",
+          "name": "site_bounds",
+          "description": "Buildable envelope"
+        },
+        {
+          "id": "PIN_C0_CODES",
+          "name": "codes_clearances",
+          "description": "Setbacks, egress, separations"
+        }
+      ]
+    },
+    {
+      "id": "S1",
+      "name": "Cooling Strategy",
+      "inputs": [
+        {
+          "id": "PIN_S1_IN_LOAD",
+          "name": "it_load"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "PIN_S1_OUT_TONS",
+          "name": "cooling_tons",
+          "description": "Capacity target"
+        },
+        {
+          "id": "PIN_S1_OUT_CHILLERS",
+          "name": "chiller_count",
+          "description": "Selected topology"
+        }
+      ]
+    },
+    {
+      "id": "S2",
+      "name": "Power Strategy",
+      "inputs": [
+        {
+          "id": "PIN_S2_IN_LOAD",
+          "name": "it_load"
+        },
+        {
+          "id": "PIN_S2_IN_TIER",
+          "name": "redundancy_tier"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "PIN_S2_OUT_GENSETS",
+          "name": "gensets",
+          "description": "Count / rating"
+        },
+        {
+          "id": "PIN_S2_OUT_SWITCHGEAR",
+          "name": "switchgear",
+          "description": "Main gear / topology"
+        }
+      ]
+    },
+    {
+      "id": "G0",
+      "name": "Layout Generator",
+      "inputs": [
+        {
+          "id": "PIN_G0_IN_HALLS",
+          "name": "data_halls"
+        },
+        {
+          "id": "PIN_G0_IN_BOUNDS",
+          "name": "site_bounds"
+        },
+        {
+          "id": "PIN_G0_IN_CODES",
+          "name": "codes_clearances"
+        },
+        {
+          "id": "PIN_G0_IN_TONS",
+          "name": "cooling_tons"
+        },
+        {
+          "id": "PIN_G0_IN_CHILLERS",
+          "name": "chiller_count"
+        },
+        {
+          "id": "PIN_G0_IN_GENSETS",
+          "name": "gensets"
+        },
+        {
+          "id": "PIN_G0_IN_SWITCHGEAR",
+          "name": "switchgear"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "PIN_G0_OUT_HALL_LAYOUT",
+          "name": "hall_layout"
+        },
+        {
+          "id": "PIN_G0_OUT_CORRIDORS",
+          "name": "corridors"
+        },
+        {
+          "id": "PIN_G0_OUT_MECH_YARD",
+          "name": "mech_yard"
+        },
+        {
+          "id": "PIN_G0_OUT_ELEC_YARD",
+          "name": "elec_yard"
+        },
+        {
+          "id": "PIN_G0_OUT_SUPPORT",
+          "name": "support_zones"
+        }
+      ]
+    },
+    {
+      "id": "D1",
+      "name": "Data Hall Placement",
+      "inputs": [
+        {
+          "id": "PIN_D1_IN_HALL_LAYOUT",
+          "name": "hall_layout"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "PIN_D1_OUT_HALL_GEOM",
+          "name": "data_halls_geom",
+          "description": "Blocks for data halls"
+        }
+      ]
+    },
+    {
+      "id": "D2",
+      "name": "Corridor Planning",
+      "inputs": [
+        {
+          "id": "PIN_D2_IN_CORRIDORS",
+          "name": "corridors"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "PIN_D2_OUT_CORR_GEOM",
+          "name": "corridors_geom",
+          "description": "Primary/secondary paths"
+        }
+      ]
+    },
+    {
+      "id": "M1",
+      "name": "Mech Yard (Chillers)",
+      "inputs": [
+        {
+          "id": "PIN_M1_IN_MECH_YARD",
+          "name": "mech_yard"
+        },
+        {
+          "id": "PIN_M1_IN_TONS",
+          "name": "cooling_tons"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "PIN_M1_OUT_CHILLER_GEOM",
+          "name": "chiller_yard_geom",
+          "description": "Pad locations / spacing"
+        }
+      ]
+    },
+    {
+      "id": "E1",
+      "name": "Elec Yard (Generators)",
+      "inputs": [
+        {
+          "id": "PIN_E1_IN_ELEC_YARD",
+          "name": "elec_yard"
+        },
+        {
+          "id": "PIN_E1_IN_GENSETS",
+          "name": "gensets"
+        },
+        {
+          "id": "PIN_E1_IN_SWITCHGEAR",
+          "name": "switchgear"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "PIN_E1_OUT_GEN_GEOM",
+          "name": "generator_yard_geom",
+          "description": "Genset / gear blocks"
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "name": "Support / Office Zoning",
+      "inputs": [
+        {
+          "id": "PIN_S3_IN_SUPPORT",
+          "name": "support_zones"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "PIN_S3_OUT_SUP_GEOM",
+          "name": "support_geom",
+          "description": "Office, MMR, staging"
+        }
+      ]
+    },
+    {
+      "id": "O0",
+      "name": "Bake Facility Geometry",
+      "inputs": [
+        {
+          "id": "PIN_O0_IN_HALL_GEOM",
+          "name": "data_halls_geom"
+        },
+        {
+          "id": "PIN_O0_IN_CORR_GEOM",
+          "name": "corridors_geom"
+        },
+        {
+          "id": "PIN_O0_IN_CHILLER_GEOM",
+          "name": "chiller_yard_geom"
+        },
+        {
+          "id": "PIN_O0_IN_GEN_GEOM",
+          "name": "generator_yard_geom"
+        },
+        {
+          "id": "PIN_O0_IN_SUP_GEOM",
+          "name": "support_geom"
+        }
+      ],
+      "outputs": [
+        {
+          "id": "PIN_O0_OUT_FACILITY",
+          "name": "facility_geometry",
+          "description": "High-level blocks ready to place"
+        }
+      ]
+    }
+  ]
+}

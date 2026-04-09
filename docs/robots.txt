@@ -1,4 +1,4 @@
 User-agent: *
 Disallow:
 Allow: /
-Sitemap: https://DaltonGOO.github.io/DaltonGoodwin.github.io/sitemap.xml
+Sitemap: https://daltongoo.github.io/sitemap.xml

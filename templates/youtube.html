@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 id="hero-title">{{ section.title }}</h1>
+<span class="title-underline"></span>
+
+<a href="/" class="hero-btn" style="margin-bottom:1.5rem;display:inline-block;">&larr; Home</a>
+
+<p class="yt-section-desc">
+  Video breakdowns, lessons learned, and extras from
+  <a href="https://www.youtube.com/@TheBIMCoordinator" target="_blank" rel="noopener">The BIM Coordinator</a> channel.
+</p>
+
+<input type="text" id="searchInput" placeholder="Search videos..." class="search-bar">
+
+<div class="yt-grid" id="ytList">
+  {% for page in section.pages %}
+    <div class="yt-card">
+      <a href="{{ page.permalink }}">
+        {% if page.extra.youtube_id %}
+          <img
+            src="https://img.youtube.com/vi/{{ page.extra.youtube_id }}/mqdefault.jpg"
+            alt="Thumbnail for {{ page.title }}"
+            class="yt-thumb"
+            loading="lazy">
+        {% elif page.extra.image %}
+          <img src="{{ page.extra.image }}" alt="Thumbnail for {{ page.title }}" class="yt-thumb" loading="lazy">
+        {% endif %}
+        <h2 class="yt-title">{{ page.title }}</h2>
+        <p class="meta">{{ page.date | date(format="%B %d, %Y") }}</p>
+        {% if page.summary %}
+          <p class="yt-summary">{{ page.summary | safe }}</p>
+        {% endif %}
+      </a>
+    </div>
+  {% endfor %}
+</div>
+
+<script>
+  document.getElementById('searchInput').addEventListener('input', function() {
+    const filter = this.value.toLowerCase();
+    document.querySelectorAll('.yt-card').forEach(card => {
+      const title = card.querySelector('.yt-title').textContent.toLowerCase();
+      card.style.display = title.includes(filter) ? '' : 'none';
+    });
+  });
+</script>
+{% endblock content %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<a href="{{ get_url(path='youtube/') }}" class="hero-btn" style="margin-bottom:1.5rem;display:inline-block;">&larr; All Videos</a>
+
+<h1 class="title">{{ page.title }}</h1>
+<span class="title-underline"></span>
+<p class="subtitle"><strong>{{ page.date | date(format="%B %d, %Y") }}</strong></p>
+
+{% if page.extra.youtube_id %}
+<div class="yt-embed">
+  <iframe
+    src="https://www.youtube.com/embed/{{ page.extra.youtube_id }}"
+    title="{{ page.title }}"
+    frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+    allowfullscreen>
+  </iframe>
+</div>
+{% endif %}
+
+<div class="yt-page-content">
+  {{ page.content | safe }}
+</div>
+{% endblock content %}

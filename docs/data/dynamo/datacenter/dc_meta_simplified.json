@@ -1,0 +1,124 @@
+{
+  "Nodes": [
+    {
+      "Id": "N0",
+      "ConcreteType": "Input.Program",
+      "NodeType": "ProgramInputs"
+    },
+    {
+      "Id": "N1",
+      "ConcreteType": "Input.Constraints",
+      "NodeType": "DesignConstraints"
+    },
+    {
+      "Id": "N2",
+      "ConcreteType": "Logic.SizeElectrical",
+      "NodeType": "PythonNode"
+    },
+    {
+      "Id": "N3",
+      "ConcreteType": "Logic.SizeCooling",
+      "NodeType": "CodeBlockNodeModel"
+    },
+    {
+      "Id": "N4",
+      "ConcreteType": "Logic.PlacementRules",
+      "NodeType": "DSFunction"
+    },
+    {
+      "Id": "N5",
+      "ConcreteType": "Output.BakeGeometry",
+      "NodeType": "DSFunction"
+    }
+  ],
+  "View": {
+    "NodeViews": [
+      {
+        "Id": "N0",
+        "Name": "Program Inputs",
+        "X": 80,
+        "Y": 120
+      },
+      {
+        "Id": "N1",
+        "Name": "Constraints",
+        "X": 80,
+        "Y": 260
+      },
+      {
+        "Id": "N2",
+        "Name": "Electrical Sizing",
+        "X": 360,
+        "Y": 100
+      },
+      {
+        "Id": "N3",
+        "Name": "Cooling Sizing",
+        "X": 360,
+        "Y": 220
+      },
+      {
+        "Id": "N4",
+        "Name": "Placement Rules",
+        "X": 640,
+        "Y": 180
+      },
+      {
+        "Id": "N5",
+        "Name": "Bake Geometry",
+        "X": 920,
+        "Y": 180
+      }
+    ]
+  },
+  "Connectors": [
+    {
+      "Start": "P_N0_RACKS",
+      "End": "P_N2_IN_RACKS"
+    },
+    {
+      "Start": "P_N0_TIER",
+      "End": "P_N2_IN_TIER"
+    },
+    {
+      "Start": "P_N0_RACKS",
+      "End": "P_N3_IN_RACKS"
+    },
+    {
+      "Start": "P_N0_DENSITY",
+      "End": "P_N3_IN_DENSITY"
+    },
+    {
+      "Start": "P_N2_OUT_FEED",
+      "End": "P_N4_IN_FEED"
+    },
+    {
+      "Start": "P_N2_OUT_PANEL",
+      "End": "P_N4_IN_PANEL"
+    },
+    {
+      "Start": "P_N3_OUT_CFM",
+      "End": "P_N4_IN_CFM"
+    },
+    {
+      "Start": "P_N3_OUT_CRAC",
+      "End": "P_N4_IN_CRAC"
+    },
+    {
+      "Start": "P_N1_CLEAR",
+      "End": "P_N4_IN_CLEAR"
+    },
+    {
+      "Start": "P_N1_AISLE",
+      "End": "P_N4_IN_AISLE"
+    },
+    {
+      "Start": "P_N4_OUT_RACKS",
+      "End": "P_N5_IN_RACKS"
+    },
+    {
+      "Start": "P_N4_OUT_TRAYS",
+      "End": "P_N5_IN_TRAYS"
+    }
+  ]
+}

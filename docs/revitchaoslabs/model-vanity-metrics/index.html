@@ -1,0 +1,74 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><title>MyBlog</title><link href=https://daltongoo.github.io/style.css rel=stylesheet><style>#progress-bar{z-index:999;background:currentColor;width:0;height:3px;position:fixed;top:0;left:0}.title-underline{background:currentColor;width:0;height:2px;margin:.5rem 0 1.25rem;display:block}.word{will-change:transform,opacity;display:inline-block}</style><body><section class=section><div class=container><h1>Model Vanity Metrics</h1><div class=revitchaoslabs-detail><p><a class=hero-btn href=/revitchaoslabs/ style=margin-bottom:1.5rem;display:inline-block>← Back to RevitChaosLabs</a> | <a class=hero-btn href=/ style=margin-bottom:1.5rem;display:inline-block>Home</a><h2 id=what-this-tool-does>What this tool does</h2><p>Model Vanity Metrics runs a quick pass on your active Revit model and gives you a fake “score” out of 100, plus a tongue-in-cheek rating like <strong>Model Citizen</strong> or <strong>Full Goblin Mode</strong>.<p>It is not a real QA tool.<br> It’s meant to be a fun way to explore the Revit API and talk about what actually makes models painful to work with.<h2 id=metrics-it-looks-at>Metrics it looks at</h2><p>Right now the command gathers:<ul><li><strong>Warnings</strong> – <code>Document.GetWarnings()</code><li><strong>CAD imports/links</strong> – <code>ImportInstance</code> count<li><strong>In-place families</strong> – <code>FamilyInstance</code> where <code>Family.IsInPlace</code> is true<li><strong>Detail lines</strong> – elements in <code>OST_Lines</code><li><strong>Groups</strong> – <code>Group</code> instances<li><strong>Views (non-template)</strong> – all <code>View</code> where <code>IsTemplate == false</code><li><strong>Views without a view template</strong> – <code>View.ViewTemplateId == InvalidElementId</code><li><strong>File size (if saved)</strong> – via <code>Document.PathName</code> + <code>FileInfo</code></ul><p>Each of these feeds a very simple scoring function that starts at 100 and subtracts points based on “model sins”.<h2 id=revit-api-concepts-this-demonstrates>Revit API concepts this demonstrates</h2><p>If you’re learning the Revit API, this command is a compact example of:<ul><li>Getting the <strong>active document</strong> from <code>ExternalCommandData</code><li>Using <strong><code>FilteredElementCollector</code></strong> with: <ul><li><code>OfClass(...)</code><li><code>OfCategory(...)</code><li><code>WhereElementIsNotElementType()</code></ul><li>Working with <strong>warnings</strong> via <code>Document.GetWarnings()</code><li>Inspecting <strong>families</strong> (<code>FamilyInstance</code> → <code>Family.IsInPlace</code>)<li>Checking <strong>view templates</strong> via <code>View.ViewTemplateId</code><li>Basic <strong>TaskDialog</strong> usage to show a formatted string</ul><h2 id=why-i-call-it-vanity-metrics>Why I call it “vanity” metrics</h2><p>These numbers are mostly about “how this model looks on paper”, not whether it will actually coordinate or build correctly.<p>It’s meant to spark questions like:<ul><li>Why do warnings matter?<li>When are CAD imports actually a problem?<li>Are in-place families always bad, or just easy to abuse?<li>Should every view really have a template?</ul><h2 id=how-to-run-it>How to run it</h2><ol><li>Open any Revit model (preferably a test model).<li>Go to the <strong>Chaos Lab</strong> tab.<li>Under the <strong>Safe</strong> panel, click <strong>Model Vanity Metrics</strong>.<li>Read the score and decide if you’re a <strong>Model Citizen</strong> or in <strong>Full Goblin Mode</strong> today.</ol></div></div></section><script src=/vendor/anime/anime.umd.min.js></script><script>const { animate, stagger } = anime;
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // ---- helpers ----
+    function splitWords(el){
+      if(!el) return [];
+      const words = (el.textContent || '').trim().split(/\s+/);
+      el.textContent = '';
+      return words.map(w=>{
+        const span = document.createElement('span');
+        span.className = 'word';
+        span.textContent = w + ' ';
+        el.appendChild(span);
+        return span;
+      });
+    }
+
+    // ---- homepage hero (looks for #hero-title) ----
+    function heroReveal(){
+      const h = document.querySelector('#hero-title');
+      if(!h) return;
+      if(prefersReduced){ h.style.opacity = 1; return; }
+      const parts = splitWords(h);
+      animate(parts, { opacity: [0,1], translateY: [12,0] }, { duration: 500, delay: (_,i)=> i*45, easing: 'easeOutCubic' });
+    }
+
+    // ---- article underline (looks for .title-underline) ----
+    function titleUnderline(){
+      const u = document.querySelector('.title-underline');
+      if(!u) return;
+      if(prefersReduced){ u.style.width = '100%'; return; }
+      animate(u, { width: ['0%','100%'] }, { duration: 650, easing: 'easeOutCubic' });
+    }
+
+    // ---- reading progress (adds bar if not present) ----
+    function readingProgress(){
+      let bar = document.getElementById('progress-bar');
+      if(!bar){
+        bar = document.createElement('div');
+        bar.id = 'progress-bar';
+        document.body.appendChild(bar);
+      }
+      const update = ()=>{
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const pct = max > 0 ? (window.scrollY / max) * 100 : 0;
+        if(prefersReduced){ bar.style.width = pct + '%'; return; }
+        animate(bar, { width: pct + '%' }, { duration: 120, easing: 'linear' });
+      };
+      update();
+      window.addEventListener('scroll', update, { passive:true });
+      window.addEventListener('resize', update);
+    }
+
+    // ---- system pulse (looks for #pulse span elements) ----
+    function initPulse(){
+      const dots = document.querySelectorAll('#pulse span');
+      if (dots.length === 0) return;
+      if (prefersReduced){ dots.forEach(d => d.style.opacity = 1); return; }
+      animate(dots, { opacity: [0.2, 1], scale: [1, 1.4] }, {
+        delay: stagger(250, { direction: 'alternate' }),
+        duration: 700,
+        easing: 'easeInOutSine',
+        loop: true,
+        direction: 'alternate'
+      });
+    }
+
+    // ---- on load ----
+    document.addEventListener('DOMContentLoaded', ()=>{
+      heroReveal();
+      titleUnderline();
+      readingProgress();
+      initPulse();   // ← enables the system pulse on pages that include #pulse
+    });</script><script src=https://daltongoo.github.io/js/app.js></script>
