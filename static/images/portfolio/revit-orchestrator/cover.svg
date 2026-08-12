@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 150" width="1024" height="150" role="img" aria-label="Revit Orchestrator — abstract dispatch graph from a hub to adapters">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f172a"/>
+      <stop offset="1" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#3a7bd5"/>
+      <stop offset="1" stop-color="#8b5cf6"/>
+    </linearGradient>
+    <radialGradient id="hubglow" cx="0.46" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#8b5cf6" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse">
+      <path d="M34 0H0V34" fill="none" stroke="#ffffff" stroke-opacity="0.045" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1024" height="150" fill="url(#bg)"/>
+  <rect width="1024" height="150" fill="url(#grid)"/>
+  <rect width="1024" height="150" fill="url(#hubglow)"/>
+
+  <!-- edges -->
+  <g stroke="url(#accent)" fill="none" stroke-opacity="0.6" stroke-width="1.6">
+    <path d="M110,75 L470,75"/>
+    <path d="M470,75 L760,32"/>
+    <path d="M470,75 L860,70"/>
+    <path d="M470,75 L770,118"/>
+    <path d="M470,75 L940,45"/>
+    <path d="M470,75 L930,110"/>
+  </g>
+  <!-- flow pulses on edges -->
+  <g fill="#c4b5fd">
+    <circle cx="290" cy="75" r="2.6"/>
+    <circle cx="601" cy="56" r="2.2"/>
+    <circle cx="646" cy="72" r="2.2"/>
+    <circle cx="605" cy="94" r="2.2"/>
+    <circle cx="681" cy="61" r="2.2"/>
+    <circle cx="676" cy="90" r="2.2"/>
+  </g>
+
+  <!-- source node (LLM) -->
+  <circle cx="110" cy="75" r="21" fill="#1e293b" stroke="url(#accent)" stroke-width="2"/>
+  <circle cx="110" cy="75" r="9" fill="#3a7bd5" fill-opacity="0.55"/>
+
+  <!-- central hub -->
+  <circle cx="470" cy="75" r="30" fill="#312e81" fill-opacity="0.6" stroke="url(#accent)" stroke-width="2.4"/>
+  <circle cx="470" cy="75" r="19" fill="none" stroke="#a78bfa" stroke-opacity="0.6" stroke-width="1.4"/>
+  <circle cx="470" cy="75" r="7" fill="#a78bfa"/>
+
+  <!-- adapter nodes (varied shapes) -->
+  <g stroke="url(#accent)" stroke-width="1.8">
+    <!-- hexagon -->
+    <path d="M760,12 L777.3,22 L777.3,42 L760,52 L742.7,42 L742.7,22 Z" fill="#1e293b" fill-opacity="0.85"/>
+    <!-- rounded square -->
+    <rect x="843" y="53" width="34" height="34" rx="8" fill="#1e293b" fill-opacity="0.85"/>
+    <!-- diamond -->
+    <path d="M770,100 L788,118 L770,136 L752,118 Z" fill="#1e293b" fill-opacity="0.85"/>
+    <!-- circle -->
+    <circle cx="940" cy="45" r="16" fill="#1e293b" fill-opacity="0.85"/>
+    <!-- hexagon 2 -->
+    <path d="M930,92 L945.6,101 L945.6,119 L930,128 L914.4,119 L914.4,101 Z" fill="#1e293b" fill-opacity="0.85"/>
+  </g>
+  <g fill="#8b5cf6" fill-opacity="0.7">
+    <circle cx="760" cy="32" r="4"/>
+    <circle cx="860" cy="70" r="4"/>
+    <circle cx="770" cy="118" r="4"/>
+    <circle cx="940" cy="45" r="4"/>
+    <circle cx="930" cy="110" r="4"/>
+  </g>
+</svg>
