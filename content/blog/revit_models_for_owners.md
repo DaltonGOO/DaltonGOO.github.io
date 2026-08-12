@@ -12,12 +12,12 @@ tags = ["BIM", "Revit", "Owners", "Consulting", "Data Strategy"]
 draft = true
 +++
 
-> *“You paid for a Revit model. Congratulations — now what?”*
+> *“You paid for a Revit model. Congratulations, now what?”*
 
 When you commission a design firm, one of the deliverables can be *“the BIM model,” “Revit files,”* or *“digital twin-ready geometry.”*  
 But what arrives is frequently a mess: inconsistent room names, missing metadata, no process for export or integration, and zero roadmap for how to use it in operations or analytics.
 
-Design teams often treat that deliverable as a handoff — *“we built the model, here you go.”* They don’t think through your business or operations. Their incentives are design, coordination, and documentation — not your long-term asset value.
+Design teams often treat that deliverable as a handoff, *“we built the model, here you go.”* They don’t think through your business or operations. Their incentives are design, coordination, and documentation, not your long-term asset value.
 
 I’ve seen dozens of owner-delivered models where:
 
@@ -26,7 +26,7 @@ I’ve seen dozens of owner-delivered models where:
 - The model is so bloated or unclean that it’s slow to open or query  
 - There is zero export path or API linkage to your CAFM / CMMS / analytics platform  
 
-This isn’t just sloppy work — it’s structural neglect of the owner’s value chain.
+This isn’t just sloppy work, it’s structural neglect of the owner’s value chain.
 
 ---
 
@@ -41,7 +41,7 @@ This isn’t just sloppy work — it’s structural neglect of the owner’s val
 
 ## What Owners *Really* Need from BIM / Revit
 
-You don’t care about geometry — you care about insights, efficiencies, and decisions.  
+You don’t care about geometry, you care about insights, efficiencies, and decisions.  
 To make a Revit model valuable, it must be treated as a database and platform, not just a 3D drawing.
 
 ### Use Cases You Should Demand
@@ -81,7 +81,7 @@ Review drafts from design teams and “owner-ify” them.
 Every model release is validated against your schema, exportability, data cleanliness, and usability.
 
 ### 5. Deployment & Realization
-I help you integrate the delivered model with your systems (CMMS, dashboards) and track value —  
+I help you integrate the delivered model with your systems (CMMS, dashboards) and track value, 
 maintenance time saved, capital planning accuracy, and operational cost reductions.
 
 ---
@@ -130,20 +130,20 @@ Suddenly, the “useless” model became an asset.
 If you already have Revit / BIM deliverables from your team, I offer a **Model Health Check / Audit**.  
 I examine how usable it is, map it against your business use cases, and show what value is trapped or missing.
 
-If you're starting a new project, I can help you embed the right BIM execution strategy from day one —  
+If you're starting a new project, I can help you embed the right BIM execution strategy from day one, 
 so you don’t end up with another digital paperweight.
 
 ---
 
 ## Recommended Readings & Whitepapers
 
-- [**The Business Value of BIM for Owners (SmartMarket Report, Autodesk / McGraw Hill)**](https://damassets.autodesk.net/content/dam/autodesk/www/solutions/building-information-modeling/bim-value/Business_Value_of_BIM_for_Owners_SMR_%282014%29.pdf) — gives owners’ perspective & common pitfalls  
-- [**National BIM Guide for Owners (NIBS)**](https://nibs.org/wp-content/uploads/2025/04/NIBS_BIMC_NationalBIMGuide-1.pdf) — guidance for how owners should frame BIM requirements  
-- [**The Business Value of BIM for Asset Owners: A Cross Case Analysis**](https://salford-repository.worktribe.com/OutputFile/1487972) — identifies six activity systems needed for owners to realize BIM value  
-- [**BIM Business Value for Asset Owners: Key Issues and Challenges**](https://livrepository.liverpool.ac.uk/3075693/1/BIM%20Business%20Value-Key%20Issues%20and%20Challenges.pdf) — review of barriers & value realization challenges  
-- [**Building Information Modelling Value Realisation Framework for Asset Owners**](https://www.researchgate.net/publication/327733016_Building_information_modelling_BIM_value_realisation_framework_for_asset_owners) — links intangible & tangible value  
-- [**4 Challenges of Realizing BIM’s Value for an Owner**](https://www.bdcnetwork.com/home/blog/55150859/4-challenges-of-realizing-bims-value-for-an-owner) — practical challenges in owner-side BIM value  
-- [**SSA White Paper — BIM as a Real Estate Tool**](https://stevenssa.com/ssa-white-paper-bim-as-a-re-tool/) — real estate & asset management perspective  
+- [**The Business Value of BIM for Owners (SmartMarket Report, Autodesk / McGraw Hill)**](https://damassets.autodesk.net/content/dam/autodesk/www/solutions/building-information-modeling/bim-value/Business_Value_of_BIM_for_Owners_SMR_%282014%29.pdf), gives owners’ perspective & common pitfalls  
+- [**National BIM Guide for Owners (NIBS)**](https://nibs.org/wp-content/uploads/2025/04/NIBS_BIMC_NationalBIMGuide-1.pdf), guidance for how owners should frame BIM requirements  
+- [**The Business Value of BIM for Asset Owners: A Cross Case Analysis**](https://salford-repository.worktribe.com/OutputFile/1487972), identifies six activity systems needed for owners to realize BIM value  
+- [**BIM Business Value for Asset Owners: Key Issues and Challenges**](https://livrepository.liverpool.ac.uk/3075693/1/BIM%20Business%20Value-Key%20Issues%20and%20Challenges.pdf), review of barriers & value realization challenges  
+- [**Building Information Modelling Value Realisation Framework for Asset Owners**](https://www.researchgate.net/publication/327733016_Building_information_modelling_BIM_value_realisation_framework_for_asset_owners), links intangible & tangible value  
+- [**4 Challenges of Realizing BIM’s Value for an Owner**](https://www.bdcnetwork.com/home/blog/55150859/4-challenges-of-realizing-bims-value-for-an-owner), practical challenges in owner-side BIM value  
+- [**SSA White Paper, BIM as a Real Estate Tool**](https://stevenssa.com/ssa-white-paper-bim-as-a-re-tool/), real estate & asset management perspective  
 
 ---
 

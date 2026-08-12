@@ -8,7 +8,7 @@ summary = "Event-driven agent with DTOs, fake server, custom logging, and shared
 +++
 
 The **Revit MEP Agent** is a local event-driven system I built to bridge Revit and external computation layers.  
-It’s not a chatbot or automation script — it’s a deterministic agent that observes, interprets, and reacts to model data in real time across multiple MEP disciplines.
+It’s not a chatbot or automation script, it’s a deterministic agent that observes, interprets, and reacts to model data in real time across multiple MEP disciplines.
 
 
 
@@ -46,9 +46,9 @@ All communication uses **DTOs** to serialize and deserialize model data cleanly.
 Each DTO defines exactly what data a command expects and returns.  
 
 Example:
-- `ElementDataDto` — geometry and parameter metadata  
-- `CommandRequestDto` — structured command sent to the agent  
-- `CommandResponseDto` — deterministic result returned to Revit  
+- `ElementDataDto`, geometry and parameter metadata  
+- `CommandRequestDto`, structured command sent to the agent  
+- `CommandResponseDto`, deterministic result returned to Revit  
 
 ```csharp
 public class ElementDataDto
@@ -176,8 +176,8 @@ Each runs through the same DTO and logging backbone, allowing consistent metrics
 
 ## Why It Matters
 
-This project represents how I think about AEC automation — not as a bunch of scripts, but as a **system** that captures reasoning and relationships.  
-Every component — from DTOs to the fake server — was built to make logic testable, transparent, and extendable.
+This project represents how I think about AEC automation, not as a bunch of scripts, but as a **system** that captures reasoning and relationships.  
+Every component, from DTOs to the fake server, was built to make logic testable, transparent, and extendable.
 
 It’s a foundation for future agent-based work, where Revit isn’t just a modeler but an intelligent, observable system.
 

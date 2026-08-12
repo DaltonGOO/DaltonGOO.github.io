@@ -239,8 +239,8 @@
   function buildTip(nodeId, label){
     const detail = nodeDetailsById[nodeId] || {};
     const nodeIO = io[nodeId] || Object.values(io).find(e => (e.name||'').toLowerCase()===(label||'').toLowerCase()) || {inputs:[], outputs:[]};
-    const ins  = nodeIO.inputs.map(p=>`<li><b>${p.name||p.id||'input'}</b>${formatFlags(p)}${p.description?` — ${p.description}`:''}</li>`).join('');
-    const outs = nodeIO.outputs.map(p=>`<li><b>${p.name||p.id||'output'}</b>${formatFlags(p)}${p.description?` — ${p.description}`:''}</li>`).join('');
+    const ins  = nodeIO.inputs.map(p=>`<li><b>${p.name||p.id||'input'}</b>${formatFlags(p)}${p.description?`: ${p.description}`:''}</li>`).join('');
+    const outs = nodeIO.outputs.map(p=>`<li><b>${p.name||p.id||'output'}</b>${formatFlags(p)}${p.description?`: ${p.description}`:''}</li>`).join('');
     return `<div style="font-weight:700;margin-bottom:6px;color:#fff">${label||nodeId}</div>` +
            (detail.concreteType?`<div style="font-size:12px;opacity:.8;margin-bottom:8px">${detail.concreteType}</div>`:'') +
            (ins? `<div style="font-weight:600;margin-top:8px">Inputs</div><ul>${ins}</ul>`:'') +

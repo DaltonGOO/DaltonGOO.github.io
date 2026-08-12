@@ -4,7 +4,7 @@ date = 2025-08-10
 template = "portfolio-page.html"
 draft = false
 extra = { cover = "images/portfolio/data-center-generator/cover.png" }
-summary = "Parametric Dynamo system that generates full data center layouts — data halls, corridors, mechanical, and electrical spaces — based on real project inputs."
+summary = "Parametric Dynamo system that generates full data center layouts, data halls, corridors, mechanical, and electrical spaces, based on real project inputs."
 +++
 
 I like it when tools make the design *clearer*, not noisier.
@@ -21,7 +21,7 @@ This is a small slice of how I approach data centers: take the logic we use ever
 - **Output**: geometry blocks you can place, revise, and re-run
 
 **Why do this?**  
-Because it turns “tribal knowledge” into something we can test, share, and improve. If the program changes, you re-run it. If a rule is wrong, you fix the rule—once.
+Because it turns “tribal knowledge” into something we can test, share, and improve. If the program changes, you re-run it. If a rule is wrong, you fix the rule, once.
 
 ---
 
@@ -52,7 +52,7 @@ Same pattern, fewer blocks. Enough to see how inputs move through decisions into
 - **Focus**: teams spend time on *decisions*, not clicking through the same steps  
 - **Change**: as needs shift, the logic updates and the outputs follow
 
-This is the kind of work I like—practical automation that helps teams ship better designs with less guesswork.
+This is the kind of work I like, practical automation that helps teams ship better designs with less guesswork.
 
 **Tech Stack:**  
 `Dynamo`, `Revit API`, `Python`

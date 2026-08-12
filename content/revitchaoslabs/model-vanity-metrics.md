@@ -19,14 +19,14 @@ It’s meant to be a fun way to explore the Revit API and talk about what actual
 
 Right now the command gathers:
 
-- **Warnings** – `Document.GetWarnings()`
-- **CAD imports/links** – `ImportInstance` count
-- **In-place families** – `FamilyInstance` where `Family.IsInPlace` is true
-- **Detail lines** – elements in `OST_Lines`
-- **Groups** – `Group` instances
-- **Views (non-template)** – all `View` where `IsTemplate == false`
-- **Views without a view template** – `View.ViewTemplateId == InvalidElementId`
-- **File size (if saved)** – via `Document.PathName` + `FileInfo`
+- **Warnings**: `Document.GetWarnings()`
+- **CAD imports/links**: `ImportInstance` count
+- **In-place families**: `FamilyInstance` where `Family.IsInPlace` is true
+- **Detail lines**: elements in `OST_Lines`
+- **Groups**: `Group` instances
+- **Views (non-template)**: all `View` where `IsTemplate == false`
+- **Views without a view template**: `View.ViewTemplateId == InvalidElementId`
+- **File size (if saved)**: via `Document.PathName` + `FileInfo`
 
 Each of these feeds a very simple scoring function that starts at 100 and subtracts points based on “model sins”.
 
