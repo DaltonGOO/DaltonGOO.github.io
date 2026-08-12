@@ -4,35 +4,39 @@ date = 2026-04-20
 template = "portfolio-page.html"
 draft = false
 extra = { cover = "images/portfolio/revit-gbxml/cover.svg" }
-summary = "Open-source Revit add-in that exports leaner gbXML built for Carrier HAP — clean room geometry, paired surfaces with adjacency, and synthesized plenums."
+summary = "A Revit 2025/2026 add-in that writes gbXML tuned for Carrier HAP. It pairs interior surfaces, positions openings in the surface frame, and synthesizes plenums, so the file imports clean instead of needing hand repair."
 +++
 
-Revit can already export gbXML. The problem is that what comes out doesn't sit well with **Carrier HAP** — surfaces don't pair up, openings land in the wrong place, and engineers spend more time cleaning the file than running the load.
+Revit already exports gbXML. The trouble is what comes out does not sit well with Carrier HAP: interior surfaces do not pair up, openings land outside their host frame, and the vertical gaps between floors come across as holes. The result is a file that imports with silent geometry errors, so the energy model starts as a cleanup job.
 
-So I wrote a smaller, focused exporter that writes only what HAP actually consumes.
+This add-in writes a leaner gbXML aimed at exactly what HAP consumes. It targets Revit 2025 and 2026 and HAP v6.2 or newer (gbXML v6.01 / v8.01).
 
-<a href="https://github.com/DaltonGOO/revit-gbxml" class="hero-btn" style="margin:.5rem 0 1rem;display:inline-block;" target="_blank" rel="noopener">View on GitHub →</a>
+<a href="https://github.com/DaltonGOO/revit-gbxml" class="hero-btn" style="margin:.5rem 0 1rem;display:inline-block;" target="_blank" rel="noopener">View on GitHub &#8594;</a>
 
 <!-- more -->
----
 
-### The idea
-- **Leaner output** — geometry and properties HAP reads, nothing it ignores
-- **Correct adjacency** — interior surfaces paired so spaces actually connect
-- **Openings in place** — doors and windows positioned inside the surface frame
-- **Synthesized plenums** — filled in between floors where the model leaves gaps
+## See the difference
 
-**Why do this?**
-Because the fastest energy model is one you don't have to rebuild by hand. If the geometry is right coming out of Revit, the analysis starts on solid ground instead of a cleanup exercise.
+Here is a two-story section and the gbXML the exporter writes for it. Toggle off the three things Revit's built-in export gets wrong, and watch the geometry and the file break the same way HAP would see it.
 
----
+{{ gbxml_section(id="gbx1") }}
 
-### What this enables
-- **Trustworthy imports** — HAP loads the file without silent geometry errors
-- **Less rework** — MEP teams stop massaging XML and start analyzing
-- **A shared baseline** — one exporter everyone can run the same way
+## What it writes
 
-It's an early-stage, open tool — the details, install steps, and known rough edges all live on GitHub.
+- **Rooms or MEP Spaces**, your choice
+- **Walls**, interior and exterior, paired with adjacency
+- **Floors, ceilings, roofs, and slabs**
+- **Doors and windows** hosted on walls, skylights on roofs, positioned in the surface frame
+- **Plenums** synthesized between rooms that have a vertical gap
+- **Constructions, materials, and window thermal properties**, each optional
+
+Every checkbox in the dialog gates exactly one category, so you export what you need and nothing else.
+
+## Workflows
+
+It reads from the active model, or from a linked architectural model. The common MEP setup is rooms and spaces in the current model with walls and openings pulled from the linked architecture, which works as long as the link instance has Room Bounding turned on.
+
+This one is beta and honest about it: the output should always be reviewed before it drives design decisions. Install steps, options, and known rough edges are all on GitHub.
 
 **Tech Stack:**
 `C#`, `Revit API`, `gbXML`, `.NET 8`

@@ -1,0 +1,159 @@
+<div class="orq" id="orq-{{ id | default(value='a') }}">
+  <div class="orq-top">
+    <h3>From plain instruction to a safe Revit transaction</h3>
+    <p>Pick an instruction, then run it. Watch the LLM propose a tool call, the server validate it against a JSON Schema, the router pick an adapter, and Revit commit the change on the main thread.</p>
+  </div>
+
+  <div class="orq-picks">
+    <button class="orq-pick" data-k="tag">Tag every air terminal on Level 2</button>
+    <button class="orq-pick" data-k="flow">Set the selected duct to 1200 CFM</button>
+    <button class="orq-pick" data-k="export">Run the equipment schedule export graph</button>
+  </div>
+
+  <div class="orq-pipe">
+    <div class="orq-stage" data-s="0"><span class="orq-n">1</span><b>LLM</b><small>proposes a tool call</small></div>
+    <div class="orq-arrow">&#8594;</div>
+    <div class="orq-stage" data-s="1"><span class="orq-n">2</span><b>MCP server</b><small>validates the schema</small></div>
+    <div class="orq-arrow">&#8594;</div>
+    <div class="orq-stage" data-s="2"><span class="orq-n">3</span><b>Router</b><small>picks an adapter</small></div>
+    <div class="orq-arrow">&#8594;</div>
+    <div class="orq-stage" data-s="3"><span class="orq-n">4</span><b>Revit add-in</b><small>commits a transaction</small></div>
+  </div>
+
+  <div class="orq-cols">
+    <pre class="orq-code" data-out="req"></pre>
+    <pre class="orq-code orq-res" data-out="res"></pre>
+  </div>
+
+  <div class="orq-bar">
+    <button class="orq-run" data-out="run">Run</button>
+    <span class="orq-status" data-out="status">Select an instruction above.</span>
+  </div>
+</div>
+
+<style>
+.orq{border:1px solid #ddd6fe;border-radius:14px;background:#fff;margin:1.5rem 0;overflow:hidden;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.orq-top{padding:1rem 1.25rem;background:linear-gradient(135deg,#3a7bd5,#7c3aed);color:#eef2ff}
+.orq-top h3{margin:0 0 .35rem;color:#fff;font-size:1.15rem}
+.orq-top p{margin:0;font-size:.9rem;opacity:.92;line-height:1.5}
+.orq-picks{display:flex;flex-wrap:wrap;gap:.5rem;padding:1rem 1.25rem .25rem}
+.orq-pick{border:1px solid #c7d2fe;background:#f5f3ff;color:#4338ca;border-radius:999px;padding:.4rem .8rem;font-size:.82rem;cursor:pointer;transition:.15s}
+.orq-pick:hover{background:#ede9fe}
+.orq-pick.on{background:#4f46e5;border-color:#4f46e5;color:#fff}
+.orq-pipe{display:flex;align-items:stretch;gap:.4rem;padding:1rem 1.25rem;overflow-x:auto}
+.orq-stage{flex:1;min-width:120px;border:1px solid #e5e7eb;border-radius:10px;padding:.6rem .7rem;display:flex;flex-direction:column;gap:.15rem;background:#f8fafc;opacity:.55;transition:.25s}
+.orq-stage b{font-size:.9rem;color:#1e293b}
+.orq-stage small{font-size:.72rem;color:#64748b}
+.orq-n{width:1.5em;height:1.5em;line-height:1.5em;text-align:center;border-radius:50%;background:#e2e8f0;color:#475569;font-size:.72rem;font-weight:700}
+.orq-stage.on{opacity:1;border-color:#7c3aed;background:#faf5ff;box-shadow:0 3px 12px rgba(124,58,237,.18)}
+.orq-stage.on .orq-n{background:#7c3aed;color:#fff}
+.orq-arrow{align-self:center;color:#c4b5fd;font-size:1.1rem}
+.orq-cols{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;padding:0 1.25rem}
+@media(max-width:640px){.orq-cols{grid-template-columns:1fr}.orq-pipe{gap:.2rem}.orq-arrow{display:none}}
+.orq-code{margin:0;background:#0b1220;color:#e2e8f0;border-radius:10px;padding:.85rem;font:12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;min-height:150px;overflow:auto}
+.orq-res{color:#86efac}
+.orq-code .k{color:#93c5fd}.orq-code .s{color:#fca5a5}.orq-code .n{color:#fcd34d}.orq-code .c{color:#64748b}
+.orq-bar{display:flex;align-items:center;gap:.9rem;padding:1rem 1.25rem}
+.orq-run{background:#4f46e5;color:#fff;border:none;border-radius:9px;padding:.55rem 1.4rem;font-size:.9rem;font-weight:600;cursor:pointer}
+.orq-run:disabled{opacity:.5;cursor:default}
+.orq-status{font-size:.83rem;color:#475569}
+</style>
+
+<script>
+(function(){
+  var root=document.getElementById('orq-{{ id | default(value="a") }}');
+  if(!root) return;
+  var SAMPLES={
+    tag:{
+      adapter:'csharp (Revit API)',
+      req:['{',
+        '  <span class="k">"tool"</span>: <span class="s">"tag_elements"</span>,',
+        '  <span class="k">"args"</span>: {',
+        '    <span class="k">"category"</span>: <span class="s">"Air Terminals"</span>,',
+        '    <span class="k">"level"</span>:    <span class="s">"Level 2"</span>,',
+        '    <span class="k">"orientation"</span>: <span class="s">"N"</span>',
+        '  }',
+        '}'].join('\n'),
+      res:['<span class="c">// committed on Revit main thread</span>',
+        '{',
+        '  <span class="k">"tagged"</span>: <span class="n">46</span>,',
+        '  <span class="k">"skipped"</span>: <span class="n">2</span>,',
+        '  <span class="k">"transaction"</span>: <span class="s">"committed"</span>,',
+        '  <span class="k">"delta"</span>: <span class="s">"+46 IndependentTag"</span>',
+        '}'].join('\n')
+    },
+    flow:{
+      adapter:'csharp (Revit API)',
+      req:['{',
+        '  <span class="k">"tool"</span>: <span class="s">"set_parameter"</span>,',
+        '  <span class="k">"args"</span>: {',
+        '    <span class="k">"elementId"</span>: <span class="n">884213</span>,',
+        '    <span class="k">"param"</span>:     <span class="s">"Flow"</span>,',
+        '    <span class="k">"value"</span>:     <span class="n">1200</span>,',
+        '    <span class="k">"unit"</span>:      <span class="s">"CFM"</span>',
+        '  }',
+        '}'].join('\n'),
+      res:['<span class="c">// committed on Revit main thread</span>',
+        '{',
+        '  <span class="k">"elementId"</span>: <span class="n">884213</span>,',
+        '  <span class="k">"old"</span>: <span class="n">950</span>, <span class="k">"new"</span>: <span class="n">1200</span>,',
+        '  <span class="k">"transaction"</span>: <span class="s">"committed"</span>,',
+        '  <span class="k">"delta"</span>: <span class="s">"~1 Duct (Flow 950 to 1200)"</span>',
+        '}'].join('\n')
+    },
+    export:{
+      adapter:'dynamo (read-only)',
+      req:['{',
+        '  <span class="k">"tool"</span>: <span class="s">"run_dynamo"</span>,',
+        '  <span class="k">"args"</span>: {',
+        '    <span class="k">"graph"</span>: <span class="s">"ExportEquipmentSchedule.dyn"</span>,',
+        '    <span class="k">"out"</span>:   <span class="s">"C:/exports/equip.csv"</span>',
+        '  }',
+        '}'].join('\n'),
+      res:['<span class="c">// no transaction, model unchanged</span>',
+        '{',
+        '  <span class="k">"rows"</span>: <span class="n">312</span>,',
+        '  <span class="k">"file"</span>: <span class="s">"equip.csv"</span>,',
+        '  <span class="k">"seconds"</span>: <span class="n">4.1</span>,',
+        '  <span class="k">"delta"</span>: <span class="s">"0 model changes"</span>',
+        '}'].join('\n')
+    }
+  };
+  var STAGE_MSG=['LLM proposed a tool call.','Validated against JSON Schema. All required fields present.','Routed to adapter: ',
+                 'Transaction committed on the Revit main thread via ExternalEvent.'];
+  var cur=null, timer=null;
+  function el(k){ return root.querySelector('[data-out="'+k+'"]'); }
+  function stages(){ return root.querySelectorAll('.orq-stage'); }
+  function reset(){
+    if(timer){clearTimeout(timer);timer=null;}
+    stages().forEach(function(s){ s.classList.remove('on'); });
+    el('res').innerHTML='';
+  }
+  function pick(k){
+    cur=k; reset();
+    root.querySelectorAll('.orq-pick').forEach(function(b){ b.classList.toggle('on',b.getAttribute('data-k')===k); });
+    el('req').innerHTML=SAMPLES[k].req;
+    el('run').disabled=false;
+    el('status').textContent='Ready. Press Run.';
+  }
+  function run(){
+    if(!cur) return;
+    reset();
+    el('run').disabled=true;
+    var ss=stages(), i=0;
+    function step(){
+      if(i>0) ss[i-1].classList.remove('flash');
+      ss[i].classList.add('on');
+      var msg=STAGE_MSG[i]; if(i===2) msg+=SAMPLES[cur].adapter;
+      el('status').textContent=msg;
+      if(i===3){ el('res').innerHTML=SAMPLES[cur].res; el('run').disabled=false; return; }
+      i++; timer=setTimeout(step,650);
+    }
+    step();
+  }
+  root.querySelectorAll('.orq-pick').forEach(function(b){ b.addEventListener('click',function(){ pick(b.getAttribute('data-k')); }); });
+  el('run').addEventListener('click',run);
+  el('run').disabled=true;
+  pick('tag');
+})();
+</script>

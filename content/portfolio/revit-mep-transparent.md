@@ -4,34 +4,38 @@ date = 2026-07-15
 template = "portfolio-page.html"
 draft = false
 extra = { cover = "images/portfolio/revit-mep-transparent/cover.svg" }
-summary = "Open-source, readable replacements for Revit's black-box MEP calculations — transparent duct, pipe, and fixture-flow servers you can audit line by line."
+summary = "A Revit 2026 add-in that replaces the built-in MEP calculation engines with open, readable ones. Pick it in Mechanical Settings and Revit runs code you can audit line by line."
 +++
 
-Every MEP engineer using Revit has said some version of *"we don't really know what Revit is doing under the hood."* It calculates duct pressure drops, pipe friction, and fixture demand — but you can't inspect the intermediate values or audit the math.
+Ask any MEP engineer what Revit does when it sizes a duct and you get a shrug. It computes pressure drop, pipe friction, and fixture demand behind a wall of built-in options (Altshul-Tsal, Colebrook, Haaland) with no way to see the intermediate numbers. Plenty of firms pull the data out and re-run the math in a spreadsheet just to have values they can stamp.
 
-This add-in fixes that. Using Revit's **External Services framework**, it registers calculation servers that show up right alongside Revit's built-in options — except the code is open, and you can read every line.
+Revit has actually allowed you to replace those engines since 2013, through the External Services framework. It was just never documented or used. This add-in uses it to register calculation servers that show up right next to the built-in ones in Mechanical Settings. Select one and Revit runs this open-source code instead.
 
-<a href="https://github.com/DaltonGOO/RevitMEPTransparent" class="hero-btn" style="margin:.5rem 0 1rem;display:inline-block;" target="_blank" rel="noopener">View on GitHub →</a>
+<a href="https://github.com/DaltonGOO/RevitMEPTransparent" class="hero-btn" style="margin:.5rem 0 1rem;display:inline-block;" target="_blank" rel="noopener">View on GitHub &#8594;</a>
 
 <!-- more -->
----
 
-### The idea
-- **Swap the engine, not the workflow** — select a transparent server in Mechanical Settings and Revit uses *this* code instead of its built-in algorithm
-- **Show the math** — Darcy-Weisbach, Altshul-Tsal friction factor, Hunter's Curve, hydraulic diameter, Reynolds classification
-- **Cite the source** — every formula documented, every variable named, referenced to the ASHRAE Handbook of Fundamentals
+## Try the duct calculation
 
-**Why do this?**
-Because engineers stamp these numbers. A calculation you can read, verify, and trace to a source beats a black box you have to re-run in a spreadsheet just to feel confident.
+This is the exact math the duct server runs inside Revit, no black box. Change an input and every step recomputes.
 
----
+{{ mep_pressure_drop(id="mep1") }}
 
-### What this enables
-- **Auditable calculations** — no more extracting data to re-check it elsewhere
-- **A proof of concept** — Revit has allowed this since 2013; this shows it's practical
-- **A base to build on** — transparent duct, pipe, and fixture-flow servers, with fittings next
+The duct straight-segment server implements the Darcy-Weisbach pressure drop with the Altshul-Tsal friction factor for turbulent flow and `f = 64/Re` for laminar, hydraulic diameter for round, rectangular, and oval ducts, and a Reynolds classification to decide which branch runs. Every formula is named and cited to ASHRAE Fundamentals, Chapter 21.
 
-The full server list, formulas, and install steps are on GitHub.
+## What ships
+
+| Server | Replaces | Status |
+|---|---|---|
+| Duct straight pressure drop | Built-in duct friction | Working |
+| Pipe straight pressure drop | Built-in pipe friction | Working |
+| Plumbing fixture flow | Built-in Hunter's Curve | Working |
+| Duct fitting pressure drop | Built-in fitting K-factor | Registered (stub) |
+| Pipe fitting pressure drop | Built-in fitting K-factor | Registered (stub) |
+
+## Why it matters
+
+Engineers put their name on these numbers. A calculation you can read, verify, and trace to a published source beats one you have to reverse-engineer in a spreadsheet before you trust it. Swapping the engine changes nothing about the workflow: you still pick a calculation method in Mechanical Settings, the model still drives the inputs, only now the method is one you can open up.
 
 **Tech Stack:**
 `C#`, `Revit API`, `External Services`, `.NET 8`

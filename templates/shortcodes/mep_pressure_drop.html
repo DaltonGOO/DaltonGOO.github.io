@@ -1,0 +1,119 @@
+<div class="mepx" id="mepx-{{ id | default(value='a') }}">
+  <div class="mepx-top">
+    <h3>Duct pressure drop, with the math shown</h3>
+    <p>Darcy-Weisbach with the Altshul-Tsal friction factor: the same calculation the transparent server runs inside Revit. Move a slider and every intermediate value updates.</p>
+  </div>
+  <div class="mepx-body">
+    <div class="mepx-inputs">
+      <label>Airflow <span class="mepx-v" data-out="q">800</span> CFM
+        <input type="range" data-in="q" min="50" max="5000" step="10" value="800"></label>
+      <label>Diameter <span class="mepx-v" data-out="d">12</span> in
+        <input type="range" data-in="d" min="4" max="36" step="1" value="12"></label>
+      <label>Length <span class="mepx-v" data-out="l">25</span> ft
+        <input type="range" data-in="l" min="1" max="200" step="1" value="25"></label>
+      <label>Material
+        <select data-in="mat">
+          <option value="0.0003">Galvanized steel (roughness 0.0003 ft)</option>
+          <option value="0.00015">Aluminum (roughness 0.00015 ft)</option>
+          <option value="0.0009">Fibrous glass liner (roughness 0.0009 ft)</option>
+          <option value="0.003">Flexible duct (roughness 0.003 ft)</option>
+        </select>
+      </label>
+      <svg class="mepx-duct" viewBox="0 0 140 140" aria-hidden="true">
+        <circle class="mepx-ring" cx="70" cy="70" r="60"></circle>
+        <circle class="mepx-fill" cx="70" cy="70" r="40"></circle>
+        <text class="mepx-dlabel" x="70" y="75" text-anchor="middle">12 in</text>
+      </svg>
+    </div>
+    <div class="mepx-steps">
+      <ol>
+        <li><code class="f">A = &#960;&#183;D&#178; / 4</code><span class="r" data-out="area"></span></li>
+        <li><code class="f">V = Q / A</code><span class="r" data-out="vel"></span></li>
+        <li><code class="f">Pv = (V / 4005)&#178;</code><span class="r" data-out="pv"></span></li>
+        <li><code class="f">Re = V&#183;D / &#957;</code><span class="r" data-out="re"></span></li>
+        <li><code class="f" data-out="fformula"></code><span class="r" data-out="f"></span></li>
+        <li><code class="f">&#916;P = f&#183;(L/D)&#183;Pv</code><span class="r" data-out="dp"></span></li>
+      </ol>
+      <div class="mepx-result">
+        <div><span>Total pressure drop</span><b data-out="dptotal"></b></div>
+        <div><span>Friction rate</span><b data-out="rate"></b></div>
+        <div><span>Flow regime</span><b data-out="regime" class="mepx-badge"></b></div>
+      </div>
+    </div>
+  </div>
+  <p class="mepx-note">Standard air (density 0.075 lb/ft&#179;, kinematic viscosity 1.57&#215;10&#8315;&#8308; ft&#178;/s at 70&#176;F). Round duct, straight segment. Source: ASHRAE Handbook of Fundamentals, Ch. 21.</p>
+</div>
+
+<style>
+.mepx{border:1px solid #d7e3e1;border-radius:14px;overflow:hidden;background:#fff;margin:1.5rem 0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.mepx-top{padding:1rem 1.25rem;background:linear-gradient(135deg,#0f766e,#0e7490);color:#e6fffb}
+.mepx-top h3{margin:0 0 .35rem;color:#fff;font-size:1.15rem}
+.mepx-top p{margin:0;font-size:.9rem;opacity:.9;line-height:1.5}
+.mepx-body{display:grid;grid-template-columns:minmax(240px,1fr) 1.4fr;gap:0}
+@media(max-width:640px){.mepx-body{grid-template-columns:1fr}}
+.mepx-inputs{padding:1.1rem 1.25rem;display:flex;flex-direction:column;gap:.9rem;background:#f6fbfa;border-right:1px solid #e2eeec}
+.mepx-inputs label{display:flex;flex-direction:column;gap:.35rem;font-size:.82rem;font-weight:600;color:#334155}
+.mepx-v{color:#0e7490;font-variant-numeric:tabular-nums}
+.mepx-inputs input[type=range]{width:100%;accent-color:#0e7490}
+.mepx-inputs select{padding:.4rem;border:1px solid #cbd5d3;border-radius:7px;font-size:.8rem;background:#fff}
+.mepx-duct{width:130px;height:130px;align-self:center;margin-top:.25rem}
+.mepx-ring{fill:none;stroke:#cbd5d3;stroke-width:2}
+.mepx-fill{fill:#22d3ee;opacity:.85;transition:fill .2s}
+.mepx-dlabel{fill:#0f172a;font:600 13px system-ui}
+.mepx-steps{padding:1.1rem 1.25rem;background:#0b1220;color:#dbeafe}
+.mepx-steps ol{margin:0;padding:0;list-style:none;counter-reset:s}
+.mepx-steps li{counter-increment:s;display:flex;align-items:baseline;justify-content:space-between;gap:1rem;padding:.5rem 0;border-bottom:1px solid #1e293b}
+.mepx-steps li::before{content:counter(s);flex:0 0 1.4em;height:1.4em;line-height:1.4em;text-align:center;font-size:.7rem;color:#67e8f9;border:1px solid #164e63;border-radius:50%;margin-right:.6rem}
+.mepx-steps .f{color:#7dd3fc;font-size:.82rem;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mepx-steps .r{color:#f0fdfa;font-weight:600;font-variant-numeric:tabular-nums;font-size:.86rem;text-align:right;white-space:nowrap}
+.mepx-result{margin-top:.9rem;display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem}
+@media(max-width:640px){.mepx-result{grid-template-columns:1fr}}
+.mepx-result>div{background:#111c30;border:1px solid #1e293b;border-radius:9px;padding:.55rem .7rem;display:flex;flex-direction:column;gap:.2rem}
+.mepx-result span{font-size:.7rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.03em}
+.mepx-result b{font-size:1.02rem;color:#5eead4}
+.mepx-badge{font-size:.9rem!important}
+.mepx-note{margin:0;padding:.7rem 1.25rem;font-size:.74rem;color:#64748b;background:#f6fbfa;border-top:1px solid #e2eeec}
+</style>
+
+<script>
+(function(){
+  var root = document.getElementById('mepx-{{ id | default(value="a") }}');
+  if(!root) return;
+  var nu = 1.57e-4;
+  function inEl(k){ return root.querySelector('[data-in="'+k+'"]'); }
+  function set(k,t){ var e=root.querySelector('[data-out="'+k+'"]'); if(e) e.textContent=t; }
+  function commas(n){ return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,','); }
+  function update(){
+    var Q=parseFloat(inEl('q').value), Din=parseFloat(inEl('d').value), L=parseFloat(inEl('l').value);
+    var eps=parseFloat(inEl('mat').value);
+    set('q',Q); set('d',Din); set('l',L);
+    var D=Din/12;
+    var A=Math.PI*D*D/4;
+    var Vfpm=Q/A, Vfps=Vfpm/60;
+    var Pv=Math.pow(Vfpm/4005,2);
+    var Re=Vfps*D/nu;
+    var f, regime, ffx;
+    if(Re<2300){ f=64/Re; regime='Laminar'; ffx='f = 64 / Re'; }
+    else { f=0.11*Math.pow(eps/D+68/Re,0.25); regime=(Re<4000?'Transitional':'Turbulent'); ffx='f = 0.11·(ε/D + 68/Re)^0.25'; }
+    var dP=f*(L/D)*Pv;
+    var rate=dP/L*100;
+    set('area',A.toFixed(3)+' ft²');
+    set('vel',commas(Vfpm)+' fpm  ('+Vfps.toFixed(1)+' ft/s)');
+    set('pv',Pv.toFixed(4)+' in. wg');
+    set('re',commas(Re)+'  → '+regime.toLowerCase());
+    set('fformula',ffx);
+    set('f',f.toFixed(4));
+    set('dp',dP.toFixed(4)+' in. wg');
+    set('dptotal',dP.toFixed(3)+' in. wg');
+    set('rate',rate.toFixed(3)+' / 100 ft');
+    set('regime',regime);
+    var fill=root.querySelector('.mepx-fill'), dl=root.querySelector('.mepx-dlabel'), ring=root.querySelector('.mepx-ring');
+    var rpx=8+(Din/36)*52; fill.setAttribute('r',rpx.toFixed(1)); ring.setAttribute('r',(rpx+8).toFixed(1));
+    dl.textContent=Din+' in';
+    var t=Math.max(0,Math.min(1,(Vfpm-500)/2500));
+    var hue=170-t*170; fill.setAttribute('fill','hsl('+hue+',75%,55%)');
+  }
+  root.querySelectorAll('[data-in]').forEach(function(el){ el.addEventListener('input',update); });
+  update();
+})();
+</script>

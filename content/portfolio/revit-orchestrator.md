@@ -4,35 +4,46 @@ date = 2026-06-10
 template = "portfolio-page.html"
 draft = false
 extra = { cover = "images/portfolio/revit-orchestrator/cover.svg" }
-summary = "Open-source bridge that connects LLMs to Revit through an MCP server — exposing C#, pyRevit, Dynamo, and multi-step workflows as one catalog of schema-validated tools."
+summary = "An open-source bridge that lets an LLM drive Revit safely. C#, pyRevit, Dynamo, and workflows become one catalog of schema-validated tools, called over MCP and committed inside real Revit transactions."
 +++
 
-The **Revit Orchestrator** connects Large Language Models to Autodesk Revit. It exposes Revit automation — C# API commands, pyRevit scripts, Dynamo graphs, and composed workflows — as a single catalog of schema-validated tools that any MCP-aware assistant (Claude, OpenAI, or a local model) can call.
+Wiring a language model to Revit is easy to do badly. The interesting problem is not getting the model to talk, it is making sure that when it acts, the action is validated, routed to the right engine, run on the right thread, and logged. That boundary between what the model asks for and what actually touches the model is the whole project.
 
-The goal isn't a chatbot bolted onto Revit. It's a clean, safe boundary between *intent* and *execution*.
+Revit Orchestrator exposes Revit automation, whether it is a C# API command, a pyRevit script, a Dynamo graph, or a composed multi-step workflow, as a single catalog of tools with typed JSON Schemas. Any MCP-aware assistant (Claude, OpenAI, or a local model through Ollama or LM Studio) can call them.
 
-<a href="https://github.com/DaltonGOO/Revit-Orchestrator" class="hero-btn" style="margin:.5rem 0 1rem;display:inline-block;" target="_blank" rel="noopener">View on GitHub →</a>
+<a href="https://github.com/DaltonGOO/Revit-Orchestrator" class="hero-btn" style="margin:.5rem 0 1rem;display:inline-block;" target="_blank" rel="noopener">View on GitHub &#8594;</a>
 
 <!-- more -->
----
 
-### The idea
-- **Talk to Revit** — query elements, place families, set parameters, or run a workflow, all through the Model Context Protocol
-- **Wrap what you already have** — one JSON file registers a tool and routes it to the right adapter: C#, pyRevit, Dynamo, or workflow
-- **Stay safe** — every call is validated against JSON Schema, gated by permissions, and executed inside a Revit transaction on the main thread via `ExternalEvent`
-- **Extend without rebuilding** — a filesystem watcher hot-reloads tool definitions; drop a JSON file in and the tool appears in the catalog
+## Follow a call through the system
 
-**Why do this?**
-Because the interesting part of AI-in-AEC isn't the model — it's the guardrails. This is a framework where the LLM proposes and a deterministic, auditable layer disposes.
+Pick an instruction and run it. Each call takes the same path: the model proposes, the server validates against a schema, the router picks an adapter, and the C# add-in commits the work on Revit's main thread.
 
----
+{{ orchestrator_flow(id="orq1") }}
 
-### What this enables
-- **One interface, many engines** — C#, Python, and Dynamo behind a unified tool catalog
-- **Auditable actions** — schema validation and model-change deltas on every call
-- **Room to grow** — new capabilities are configuration, not a new build
+## How the pieces fit
 
-Architecture, setup, and provider configuration are documented on GitHub and the [project site](https://daltongoo.github.io/Revit-Orchestrator/).
+```
+ LLM provider          Python MCP server        C# Revit add-in
+ (Claude/OpenAI)  <->  (stdio, schema check) <->  (named pipe, JSON)
+                            router: revit           ExternalEvent bridge
+                                    pyrevit          Revit API, main thread
+                                    dynamo
+                                    workflow
+```
+
+A single JSON file registers a tool: its schema, its permissions, and which adapter runs it. A filesystem watcher hot-reloads that folder, so dropping a new definition in makes the tool appear in the catalog without a rebuild.
+
+## The guardrails
+
+- **Schema-validated.** Every call is checked against a typed JSON Schema before anything runs.
+- **Permissioned.** Tools declare what they are allowed to touch, with preconditions checked up front.
+- **Transaction-safe.** Work executes inside a Revit transaction on the main thread through `ExternalEvent`, never off-thread.
+- **Auditable.** Each call is logged with the model-change delta it produced, so you can see exactly what moved.
+
+The model proposes. A deterministic layer disposes. That split is what makes it safe to point an LLM at a live model.
+
+Architecture, provider setup, and the packaged installer are documented on GitHub and the [project site](https://daltongoo.github.io/Revit-Orchestrator/).
 
 **Tech Stack:**
 `Python 3.11`, `C#`, `.NET 8`, `MCP`, `Named Pipes`, `JSON Schema`
