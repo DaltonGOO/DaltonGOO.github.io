@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 150" width="1024" height="150" role="img" aria-label="gbXML Exporter for HAP — abstract building energy geometry">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f172a"/>
+      <stop offset="1" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="warm" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fbbf24"/>
+      <stop offset="1" stop-color="#f97316"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.8" cy="0.35" r="0.55">
+      <stop offset="0" stop-color="#f97316" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#f97316" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse">
+      <path d="M34 0H0V34" fill="none" stroke="#ffffff" stroke-opacity="0.045" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1024" height="150" fill="url(#bg)"/>
+  <rect width="1024" height="150" fill="url(#grid)"/>
+  <rect width="1024" height="150" fill="url(#glow)"/>
+
+  <!-- thermal contour flow -->
+  <g fill="none" stroke="url(#warm)" stroke-linecap="round">
+    <path d="M0,116 C150,86 300,146 470,110 S770,74 1024,112" stroke-opacity="0.5" stroke-width="2"/>
+    <path d="M0,132 C170,108 320,158 500,126 S800,96 1024,130" stroke-opacity="0.28" stroke-width="1.5"/>
+  </g>
+
+  <!-- isometric "rooms" with paired-surface adjacency -->
+  <g stroke="url(#warm)" stroke-linejoin="round">
+    <!-- box A -->
+    <path d="M360,34 L386,47 L360,60 L334,47 Z" fill="#f59e0b" fill-opacity="0.10" stroke-opacity="0.9" stroke-width="1.5"/>
+    <path d="M334,47 L360,60 L360,94 L334,81 Z" fill="#f59e0b" fill-opacity="0.05" stroke-opacity="0.75" stroke-width="1.5"/>
+    <path d="M386,47 L360,60 L360,94 L386,81 Z" fill="#f59e0b" fill-opacity="0.02" stroke-opacity="0.55" stroke-width="1.5"/>
+    <!-- box B (larger) -->
+    <path d="M470,50 L502,66 L470,82 L438,66 Z" fill="#f59e0b" fill-opacity="0.12" stroke-opacity="0.95" stroke-width="1.6"/>
+    <path d="M438,66 L470,82 L470,122 L438,106 Z" fill="#f59e0b" fill-opacity="0.06" stroke-opacity="0.8" stroke-width="1.6"/>
+    <path d="M502,66 L470,82 L470,122 L502,106 Z" fill="#f59e0b" fill-opacity="0.02" stroke-opacity="0.6" stroke-width="1.6"/>
+    <!-- box C -->
+    <path d="M590,40 L614,52 L590,64 L566,52 Z" fill="#f59e0b" fill-opacity="0.10" stroke-opacity="0.9" stroke-width="1.4"/>
+    <path d="M566,52 L590,64 L590,96 L566,84 Z" fill="#f59e0b" fill-opacity="0.05" stroke-opacity="0.7" stroke-width="1.4"/>
+    <path d="M614,52 L590,64 L590,96 L614,84 Z" fill="#f59e0b" fill-opacity="0.02" stroke-opacity="0.5" stroke-width="1.4"/>
+  </g>
+
+  <!-- adjacency links -->
+  <g stroke="#fbbf24" stroke-opacity="0.55" stroke-width="1.4" stroke-dasharray="2 5" fill="none">
+    <path d="M360,64 L470,86"/>
+    <path d="M470,86 L590,68"/>
+  </g>
+  <g fill="#fde68a">
+    <circle cx="360" cy="64" r="2.4"/>
+    <circle cx="470" cy="86" r="2.8"/>
+    <circle cx="590" cy="68" r="2.4"/>
+  </g>
+</svg>
