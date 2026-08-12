@@ -13,7 +13,7 @@
         {
           "id": "PIN_P0_TIER",
           "name": "redundancy_tier",
-          "description": "Tier I–IV"
+          "description": "Tier I-IV"
         },
         {
           "id": "PIN_P0_ITLOAD",

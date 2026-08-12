@@ -13,7 +13,7 @@
         {
           "id": "P_N0_TIER",
           "name": "redundancy_tier",
-          "description": "Uptime tier (I–IV)"
+          "description": "Uptime tier (I-IV)"
         },
         {
           "id": "P_N0_DENSITY",
@@ -150,7 +150,7 @@
         {
           "id": "P_N5_OUT_GEOM",
           "name": "geometry",
-          "description": "Rooms, racks, trays — ready to place"
+          "description": "Rooms, racks, trays, ready to place"
         }
       ]
     }
